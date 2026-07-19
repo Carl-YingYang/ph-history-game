@@ -17,29 +17,29 @@ export class TitleScene extends Phaser.Scene {
     // Dark background
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e);
 
-    // Title — scaled for 320×240 internal resolution
+    // Title — scaled for 480×360 internal resolution
     const titleY = GAME_HEIGHT * 0.28;
     this.add.text(GAME_WIDTH / 2, titleY, 'PROJECT NOOR', {
       fontFamily: 'monospace',
-      fontSize: '18px',
+      fontSize: '24px',
       color: '#f8f8f8',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     // Subtitle
-    this.add.text(GAME_WIDTH / 2, titleY + 20, 'Noli Me Tangere', {
+    this.add.text(GAME_WIDTH / 2, titleY + 28, 'Noli Me Tangere', {
       fontFamily: 'monospace',
-      fontSize: '8px',
+      fontSize: '10px',
       color: '#888888',
     }).setOrigin(0.5);
 
     // Decorative line
-    this.add.rectangle(GAME_WIDTH / 2, titleY + 35, 80, 1, 0x444444);
+    this.add.rectangle(GAME_WIDTH / 2, titleY + 48, 120, 1, 0x444444);
 
     // Blinking "Press Start" prompt
     this.promptText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.7, 'Press ENTER to Start', {
       fontFamily: 'monospace',
-      fontSize: '7px',
+      fontSize: '10px',
       color: '#f8f8f8',
     }).setOrigin(0.5);
 
