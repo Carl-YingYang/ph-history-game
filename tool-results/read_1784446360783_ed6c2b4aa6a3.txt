@@ -1,0 +1,491 @@
+     1→     1→# PROJECT NOOR: THE UNFINISHED DAWN
+     2→     2→### Master Design & Build Prompt — Rizal-Inspired Educational RPG
+     3→     3→*(Working title used below: "Project Noor." Rename freely — "noor" nods to "the dawn Elias never saw.")*
+     4→     4→
+     5→     5→> **How to use this document:** This is the single source of truth for the project. Paste this whole file as the system/project prompt for any AI coding session (Claude Code, Cursor, etc.), or hand it to a human dev team as the GDD. It replaces and supersedes the original loose prompt — every requirement from that prompt is preserved below, but disambiguated, sequenced, and grounded in the *actual* plot of Noli Me Tangere and El Filibusterismo so nothing has to be invented from scratch mid-build.
+     6→     6→
+     7→     7→---
+     8→     8→
+     9→     9→## 0. EXECUTIVE SUMMARY
+    10→    10→
+    11→    11→**Project Noor** is a 2D top-down pixel RPG that plays like a Pokémon-generation handheld game (Gen 3–5 feel, Coromon/Nexomon-adjacent UX) but replaces monster-catching/battling with **witnessing and documenting Philippine history**. The player is a 2026 college student pulled through a mysterious letter into San Diego, 1887 — the fictional town of *Noli Me Tangere* — and later into the Manila of *El Filibusterismo*, 1891. They cannot change what happens to Ibarra, Elias, Sisa, Maria Clara, or Simoun. They can only explore, ask questions, solve puzzles, and record what they witness in a **Rizal Codex** — becoming, by the end, an *Illustrado*: someone who truly understands.
+    12→    12→
+    13→    13→- **Engine:** Phaser 3 (game canvas) inside **React + TypeScript** (shell/UI/menus)
+    14→    14→- **Backend:** Node.js + Express, **PostgreSQL**, **JWT** auth
+    15→    15→- **Platforms:** Web (primary), Desktop wrapper later (Tauri/Electron), Mobile after that
+    16→    16→- **Tone target:** All-ages, roughly a "T for Teen" equivalent — the novels contain death, abuse, and sexual menace; Section 21 below defines exactly how much of that is shown vs. narrated.
+    17→    17→
+    18→    18→---
+    19→    19→
+    20→    20→## 1. VISION STATEMENT
+    21→    21→
+    22→    22→> *"Noli Me Tangere and El Filibusterismo are usually assigned as homework. Project Noor is designed so that a 15-year-old finishes it having voluntarily reread Rizal's footnotes — not because they were tested, but because they were there."*
+    23→    23→
+    24→    24→The game must never feel like edutainment filler bolted onto a quiz. Every mechanic borrowed from Pokémon exists because it already teaches a habit the game needs (curiosity about hidden areas, talking to every NPC, completing a "dex," caring about a badge/medal count). We are reusing a proven **behavioral loop**, not just an aesthetic.
+    25→    25→
+    26→    26→---
+    27→    27→
+    28→    28→## 2. GAME PILLARS
+    29→    29→
+    30→    30→1. **Witness, Don't Rewrite** — Player agency is exploratory and interpretive, never plot-altering. Side quests can help minor/invented NPCs; they never save Elias, un-imprison Sisa, or stop the execution. This is a design pillar, not a limitation — the tragedy landing on schedule *is* the theme (see Padre Florentino's thesis in Section 21).
+    31→    31→2. **Curiosity Is the Currency** — Replace "grinding EXP off wild encounters" with "grinding Knowledge XP off curiosity" (reading signs, opening books, asking a fourth follow-up question).
+    32→    32→3. **The Codex Is the Real Endgame** — Like a Pokédex completion run, 100%-ing the Rizal Codex is the long-tail goal for replay-minded players.
+    33→    33→4. **Two Novels, One Emotional Arc** — Noli's hope must curdle into Fili's cynicism *mechanically*, not just narratively (see Section 9, tone-shift techniques).
+    34→    34→5. **Respectful of the Source** — Historical figures (Rizal himself) are never playable, never given invented dialogue that contradicts the historical record, and never trivialized. Fictional characters (Ibarra, Simoun, Elias, etc.) have full creative latitude since they're Rizal's own inventions.
+    35→    35→
+    36→    36→---
+    37→    37→
+    38→    38→## 3. TARGET AUDIENCE
+    39→    39→
+    40→    40→| Segment | Why they play | Design implication |
+    41→    41→|---|---|---|
+    42→    42→| Filipino Grade 9–10 students (Noli/Fili are in the DepEd curriculum) | Assigned reading companion | Codex entries must double as legitimate study notes; quiz content must be curriculum-safe/accurate |
+    43→    43→| Filipino college students & young professionals | Nostalgia, "I wish I had this in high school" | Deeper lore, harder puzzles, unlockable historian-level Codex tier |
+    44→    44→| Diaspora Filipinos | Reconnect with heritage, teach their kids | Optional English-first dialogue toggle (see Section 12) |
+    45→    45→| General JRPG/Pokémon fans (non-Filipino) | Genre familiarity | The Prologue must fully onboard someone with zero Rizal knowledge in <10 minutes |
+    46→    46→
+    47→    47→---
+    48→    48→
+    49→    49→## 4. CORE CONCEPT / PREMISE
+    50→    50→
+    51→    51→**Cold open (Prologue, ~10–15 min):**
+    52→    52→
+    53→    53→```
+    54→    54→University Library (2026, present-day Manila)
+    55→    55→   ↓  Player, a nameless/customizable student, is shelving/returning
+    56→    56→   ↓  a copy of Noli Me Tangere for a class requirement.
+    57→    57→   ↓
+    58→    58→A brittle, handwritten letter falls out of the book.
+    59→    59→It's addressed "To whoever still remembers —"
+    60→    60→   ↓
+    61→    61→Player reads the letter (first real player-chosen dialogue: curious /
+    62→    62→skeptical / dismissive tone — cosmetic only, tracked as a minor Codex flag)
+    63→    63→   ↓
+    64→    64→The library goes silent. Pages of every book on the shelf begin to glow.
+    65→    65→   ↓
+    66→    66→BLACKOUT
+    67→    67→   ↓
+    68→    68→Player wakes up face-down in a rice paddy outside San Diego, 1887.
+    69→    69→Distant church bells. A cart driver (invented NPC, "Mang Tenyo")
+    70→    70→finds them and assumes they're a new teacher's aide from Manila —
+    71→    71→this becomes the player's cover identity for the whole Noli arc.
+    72→    72→```
+    73→    73→
+    74→    74→This cover identity (a "visiting scholar's aide") is important: it's the diegetic reason NPCs talk to a stranger, the reason the player can wander a church, a school construction site, and a principal household without suspicion, and it foreshadows the player's real function — a chronicler, same as Rizal was.
+    75→    75→
+    76→    76→The player is **never** Ibarra, Elias, or Simoun. They are always themselves, an observer with a name the player picks, referred to by NPCs as "iho/iha" (son/daughter) or "ka-eskwela" (fellow student) depending on region/chapter.
+    77→    77→
+    78→    78→---
+    79→    79→
+    80→    80→## 5. DESIGN PHILOSOPHY — THE POKÉMON MAPPING TABLE
+    81→    81→
+    82→    82→| Pokémon concept | Project Noor equivalent | Notes |
+    83→    83→|---|---|---|
+    84→    84→| Pokémon Center | **School Library / Convent Archive** | Heals nothing (no HP) — instead refills a "Focus" meter used for puzzle mini-games, and is the fast-travel/save anchor |
+    85→    85→| Poké Mart | **Bookstore / Sari-sari Store** | Sells cosmetic outfit pieces, journal stickers/stamps, hint tokens |
+    86→    86→| Pokédex | **Rizal Codex** | Full spec in Section 15 |
+    87→    87→| Wild encounters / battles | **Historical Investigation Encounters** | Replaces battle triggers: an NPC flags a mystery (a rumor, a hidden object, a contradiction between two testimonies); player "resolves" it via dialogue-tree or mini-game, not combat |
+    88→    88→| EXP / Levels | **Knowledge XP / Ranks** | Section 13 |
+    89→    89→| Gym Badges | **Chapter Medals** | Awarded at the end of each Gameplay Chapter (Section 8) |
+    90→    90→| HMs (Cut, Surf...) | **Historical Documents** | E.g., obtaining Fr. Dámaso's sermon notes lets you enter the sacristy; a merchant's ledger lets you cross the river checkpoint. Functions exactly like an HM key-item gate. |
+    91→    91→| Evolution | **Character Understanding Milestones** | The *player's* Codex entry on a character "evolves" (more portrait detail, deeper bio) as the player learns more about them — Rizal's characters don't evolve, the player's understanding of them does |
+    92→    92→| Trainer rival | **"Ka-Estudyante" — a fellow modern-day exchange student** (invented character, optional) | A rival who has already read the book and needles the player with foreshadowing; recurring comic-relief + soft hint system |
+    93→    93→| Region map | **World Map, Section 7** | |
+    94→    94→
+    95→    95→---
+    96→    96→
+    97→    97→## 6. CORE GAMEPLAY LOOP
+    98→    98→
+    99→    99→```
+   100→   100→ ┌─────────────────────────────────────────────────────────────────┐
+   101→   101→ │  EXPLORE AREA                                                    │
+   102→   102→ │      ↓                                                           │
+   103→   103→ │  TALK TO NPC(s)  ───────────────►  (optional) ACCEPT SIDE QUEST  │
+   104→   104→ │      ↓                                                                 ↓
+   105→   105→ │  TRIGGER MAIN STORY BEAT (scripted, unskippable, witnessed only) │
+   106→   106→ │      ↓                                                           │
+   107→   107→ │  SOLVE ENVIRONMENTAL PUZZLE / MINI-GAME (ties to the beat)       │
+   108→   108→ │      ↓                                                           │
+   109→   109→ │  HISTORICAL CONTEXT POP-UP  (short, skippable-after-first-read,  │
+   110→   110→ │     footnote-style, never blocks re-reading later via Codex)     │
+   111→   111→ │      ↓                                                           │
+   112→   112→ │  STORY EVENT RESOLVES                                            │
+   113→   113→ │      ↓                                                           │
+   114→   114→ │  MINI QUIZ (2–4 Qs, framed as the player's own journal recap —   │
+   115→   115→ │     never a "test," always "what do YOU remember?")              │
+   116→   116→ │      ↓                                                           │
+   117→   117→ │  KNOWLEDGE XP + JOURNAL AUTO-ENTRY + CODEX UNLOCK(S)              │
+   118→   118→ │      ↓                                                           │
+   119→   119→ │  (end of chapter) CHAPTER MEDAL + SAVE CHECKPOINT                 │
+   120→   120→ │      ↓                                                           │
+   121→   121→ │  NEXT CHAPTER GATE OPENS                                          │
+   122→   122→ └─────────────────────────────────────────────────────────────────┘
+   123→   123→```
+   124→   124→
+   125→   125→---
+   126→   126→
+   127→   127→## 7. WORLD DESIGN & MAP
+   128→   128→
+   129→   129→Semi-open like Pokémon Gen 3: hub-and-spoke areas gated by story flags/"Historical Documents," not levels.
+   130→   130→
+   131→   131→```
+   132→   132→                         ┌────────────────────┐
+   133→   133→                         │  UNIVERSITY LIBRARY │  (2026 frame — bookend area)
+   134→   134→                         └──────────┬─────────┘
+   135→   135→                                    │ (letter / time-fall)
+   136→   136→                         ┌──────────▼─────────┐
+   137→   137→                         │   RICE PADDY OUTSKIRTS│ (Prologue landing zone)
+   138→   138→                         └──────────┬─────────┘
+   139→   139→                                    │
+   140→   140→                    ┌───────────────▼────────────────┐
+   141→   141→                    │         SAN DIEGO (HUB)         │
+   142→   142→                    │  ┌───────────┬────────────────┐ │
+   143→   143→                    │  │ Town Plaza│  Church &       │ │
+   144→   144→                    │  │ & Market  │  Convent        │ │
+   145→   145→                    │  ├───────────┼────────────────┤ │
+   146→   146→                    │  │ Ibarra    │  School         │ │
+   147→   147→                    │  │ Mansion   │  Construction   │ │
+   148→   148→                    │  │           │  Site           │ │
+   149→   149→                    │  ├───────────┴────────────────┤ │
+   150→   150→                    │  │  Cap. Tiago / Maria Clara    │ │
+   151→   151→                    │  │  Household                   │ │
+   152→   152→                    │  └──────────────────────────────┘ │
+   153→   153→                    └───┬─────────────┬──────────────┬──┘
+   154→   154→                        │             │              │
+   155→   155→              ┌─────────▼───┐  ┌──────▼──────┐ ┌─────▼──────┐
+   156→   156→              │ LAGUNA DE BAY│  │  FOREST PATH │ │  ROAD TO   │
+   157→   157→              │ (picnic,     │  │ (Tasyo's hut,│ │  MANILA    │
+   158→   158→              │  crocodile,  │  │  Sisa's      │ │  (port)    │
+   159→   159→              │  boat chase) │  │  wandering,  │ └─────┬──────┘
+   160→   160→              └─────────┬────┘  │  Elias'      │       │
+   161→   161→                        │       │  grandfather's│       │
+   162→   162→              ┌─────────▼────┐  │  tomb)        │       │
+   163→   163→              │ ELIAS HIDEOUT│  └──────┬───────┘       │
+   164→   164→              │ (late-game,  │         │               │
+   165→   165→              │  optional)   │  ┌──────▼───────┐        │
+   166→   166→              └──────────────┘  │ ENDING OF NOLI│        │
+   167→   167→                                 │ (lake chase,  │        │
+   168→   168→                                 │  cutscene-only│        │
+   169→   169→                                 │  — see 8.1)   │        │
+   170→   170→                                 └──────┬───────┘        │
+   171→   171→                                        │                │
+   172→   172→                              ═════ TIME SKIP (13 yrs) ═══▼════
+   173→   173→                                        │
+   174→   174→                         ┌──────────────▼───────────────┐
+   175→   175→                         │   STEAMSHIP "TABO" (Pasig R.) │  (Fili opens here —
+   176→   176→                         │   upper deck / lower deck      │   class-divide tutorial)
+   177→   177→                         └──────────────┬────────────────┘
+   178→   178→                                        │
+   179→   179→                    ┌───────────────────▼────────────────────┐
+   180→   180→                    │              MANILA (HUB)                │
+   181→   181→                    │ ┌───────────┬───────────┬──────────────┐ │
+   182→   182→                    │ │ UST        │ Quiapo Fair│ Quiroga's   │ │
+   183→   183→                    │ │ (Univ. of  │ (Sphinx     │ Bazaar      │ │
+   184→   184→                    │ │ Sto. Tomas)│  exhibit)   │ (arms front)│ │
+   185→   185→                    │ ├───────────┴───────────┴──────────────┤ │
+   186→   186→                    │ │  Capitan Tiago's House (wedding venue) │ │
+   187→   187→                    │ └────────────────────────────────────────┘ │
+   188→   188→                    └───┬──────────────────────────────────┬────┘
+   189→   189→                         │                                  │
+   190→   190→               ┌─────────▼─────────┐              ┌─────────▼─────────┐
+   191→   191→               │  SAN DIEGO REVISIT│              │  TALES' FARM /     │
+   192→   192→               │  (Sisa's grave,   │              │  BANDIT MOUNTAINS  │
+   193→   193→               │  Basilio's return)│              │  (Cabesang Tales   │
+   194→   194→               └───────────────────┘              │  arc, cutscene-    │
+   195→   195→                                                    │  heavy, see 8.2)  │
+   196→   196→                                                    └───────────────────┘
+   197→   197→                                        │
+   198→   198→                         ┌──────────────▼───────────────┐
+   199→   199→                         │  PADRE FLORENTINO'S COASTAL   │
+   200→   200→                         │  ESTATE  (finale)             │
+   201→   201→                         └──────────────┬────────────────┘
+   202→   202→                                        │
+   203→   203→                         ┌──────────────▼───────────────┐
+   204→   204→                         │  UNIVERSITY LIBRARY, 2026     │  (bookend closes)
+   205→   205→                         └───────────────────────────────┘
+   206→   206→```
+   207→   207→
+   208→   208→Every named building has a stated gameplay purpose (Section 8 gives it per-chapter; no "empty houses" — Rizal's world already supplies more real locations than a first game needs).
+   209→   209→
+   210→   210→---
+   211→   211→
+   212→   212→## 8. CHAPTER DESIGN (GAMEPLAY CHAPTERS, NOT BOOK CHAPTERS)
+   213→   213→
+   214→   214→11 gameplay chapters total (7 Noli, 1 time-skip interstitial, 3 Fili) plus Prologue and Epilogue. Each ends with the loop in Section 6.
+   215→   215→
+   216→   216→### 8.1 NOLI ARC
+   217→   217→
+   218→   218→| # | Chapter Title | Real Novel Events Covered | Player Verbs | Chapter Medal |
+   219→   219→|---|---|---|---|---|
+   220→   220→| P | *The Letter* (Prologue) | Frame story only | Read, walk, talk | — |
+   221→   221→| 1 | *A Stranger in San Diego* | Arrival; meeting Ibarra fresh off the boat from Europe; the reception dinner is *heard about*, not attended (player is too low-status) — instead player pieces it together from servant gossip | Eavesdrop, ask NPCs, Codex: unlock Ibarra, Cap. Tiago, Fr. Dámaso | **Medal: Listener** |
+   222→   222→| 2 | *The Fair-Weather Friend* | Lt. Guevara reveals Don Rafael's fate (slander, prison death, exhumation) | Investigate the old Ibarra estate records, dialogue with Guevara, first "Historical Investigation Encounter" | **Medal: The Ledger** |
+   223→   223→| 3 | *The School on the Hill* | Ibarra's school project; consulting Pilosopo Tasyo; the Laguna de Bay picnic & crocodile attack; player is a bystander who fetches help while Ibarra saves Elias | Puzzle: net-tangle minigame (see Section 20); Codex: unlock Elias, Tasyo, Maria Clara's friend group | **Medal: The Cornerstone** |
+   224→   224→| 4 | *The Derrick and the Feast* | Assassination attempt at the cornerstone-laying; the luncheon; Dámaso's tirade; Ibarra's public breakdown & excommunication | Timed "warn the townspeople" sequence sourced from Elias's tip; witness-only cutscene for the confrontation (no player combat) | **Medal: The Broken Toast** |
+   225→   225→| 5 | *Sisa's Song* | Crispin/Basilio's persecution, Sisa's arrest and madness | Side-quest chain following Basilio's escape from a distance; player can leave bread/find him supplies but cannot save Crispin (fixed outcome) | **Medal: The Empty Chair** |
+   226→   226→| 6 | *The Uprising That Wasn't* | Lucas/Salví's fake rebellion frame-up; Ibarra's arrest; Maria Clara's forced betrayal (the letters) | Investigation minigame: player assembles the frame-up from scattered clues *after the fact* — dramatic irony, since the player already watched it happen | **Medal: The Forged Signature** |
+   227→   227→| 7 | *Across the Lake* | Elias's jailbreak of Ibarra, the mansion burning, the boat chase, Elias's death monologue, Sisa's death, Maria Clara's cloistering | Fully cutscene-driven (this is the emotional climax — see 8.3 tone notes); final QTE-free "row silently" sequence; Elias's "*I shall die without seeing the dawn...*" line is paraphrased/adapted, not reproduced verbatim (see Section 21 legal note) | **Medal: The Unfinished Dawn** *(hence the working title)* |
+   228→   228→
+   229→   229→### 8.2 INTERSTITIAL
+   230→   230→
+   231→   231→| I | *Thirteen Years* | Time-skip. A short, book-ended sequence: player returns to the 2026 library for a scene, ages/context update, then falls back in — now aboard the steamship Tabo | Dialogue-only, sets up Fili's tonal shift | **Medal: The Long Silence** |
+   232→   232→
+   233→   233→### 8.3 FILI ARC
+   234→   234→
+   235→   235→| # | Chapter Title | Real Novel Events Covered | Player Verbs | Chapter Medal |
+   236→   236→|---|---|---|---|---|
+   237→   237→| 8 | *Upper Deck, Lower Deck* | Steamship class divide; meeting Simoun (unaware he's Ibarra); Basilio as a med student; Cabesang Tales' backstory told in flashback fragments | "Two decks" traversal mechanic — literal verticality used to teach colonial class structure | **Medal: The Dividing Line** |
+   238→   238→| 9 | *The Academy and the Sphinx* | Student petition for a Spanish academy; UST classroom humiliation; Quiapo Fair Sphinx exhibit; poster crackdown; Basilio's imprisonment; Juli's fate (handled per Section 21) | Puzzle: Letter Assembly (reconstructing the anti-clerical posters' real authorship to clear an innocent NPC); Codex: unlock Isagani, Simoun's true identity | **Medal: The Silenced Press** |
+   239→   239→| 10 | *The Lamp* | Cabesang Tales/Matanglawin's parallel tragedy; the wedding, the nitroglycerin lamp, Isagani's last-second save, Tales' death by his own son's hand | Timeline Arrangement minigame reconstructing Tales' fall from farmer to "Matanglawin"; finale is cutscene-only (no player control of the bomb) | **Medal: The Pomegranate Lamp** |
+   240→   240→| 11 | *Padre Florentino's Shore* | Simoun's confession, Florentino's civic-virtue rebuttal, the jewels thrown into the sea | Dialogue-choice reflection sequence — the *player*, not Simoun, answers Florentino's closing question, feeding directly into the Ending's "Player Reflection Journal" | **Medal: The Sea That Keeps Them** |
+   241→   241→| E | *Epilogue: Bagumbayan* | Rizal's historical execution, Dec 30, 1896 (real biography, not novel-fiction) — framed as the 2026 student finally finishing the book in the library, now understanding the footnotes | No gameplay — cinematic/reading epilogue, transitions to Ending screen (Section 17) | **Medal: The Illustrado** |
+   242→   242→
+   243→   243→---
+   244→   244→
+   245→   245→## 9. STORY DESIGN — TONE-SHIFT TECHNIQUE (Noli → Fili)
+   246→   246→
+   247→   247→Mechanically encode the novels' own thematic pivot (reform → accelerationism):
+   248→   248→- **Palette:** Noli areas are warm/golden (hope); Fili areas desaturate, more blue/grey, harsher shadows.
+   249→   249→- **Music:** Noli's main motif is major-key kundiman-inspired; the *same* motif returns in Fili transposed to minor key.
+   250→   250→- **UI chrome:** Journal paper texture ages/yellows between arcs.
+   251→   251→- **Mini-game framing:** Noli puzzles are framed as "help/build" (assemble the school cornerstone plaque); Fili puzzles are framed as "uncover/expose" (assemble the truth behind a bombing plot).
+   252→   252→- **NPC callback system:** Every named Fili-arc NPC who appeared as a background sprite in Noli (a student who is now Isagani's classmate, a merchant who is now Quiroga's clerk) should be flagged in the Codex as a "Then and Now" pair — a very Pokémon-esque "you caught this one before it evolved" dopamine hit, done here through recognition rather than stat growth.
+   253→   253→
+   254→   254→---
+   255→   255→
+   256→   256→## 10. QUEST DESIGN
+   257→   257→
+   258→   258→**Four quest types**, each following this template:
+   259→   259→
+   260→   260→```
+   261→   261→Quest ID / Title
+   262→   262→Type: Main | Side | Knowledge | Collectible
+   263→   263→Story Purpose: (why this exists narratively)
+   264→   264→Learning Objective: (the one historical fact/theme it's built to teach)
+   265→   265→NPC(s) Involved:
+   266→   266→Trigger: (where/when it becomes available)
+   267→   267→Objectives: (numbered, player-facing)
+   268→   268→Completion Requirement:
+   269→   269→Rewards: (Knowledge XP, Codex unlock, cosmetic, Journal entry)
+   270→   270→Historical Explanation: (the footnote shown on completion)
+   271→   271→Dialogue Sample: (2–4 lines, see Section 12 for full dialogue rules)
+   272→   272→```
+   273→   273→
+   274→   274→**Worked example (Side Quest, Chapter 3):**
+   275→   275→```
+   276→   276→Quest ID: SQ-03-02 "What Tasyo Reads at Night"
+   277→   277→Type: Side Quest
+   278→   278→Story Purpose: Deepen the player's understanding of why Pilosopo Tasyo
+   279→   279→  is dismissed as "loco" by San Diego's townsfolk.
+   280→   280→Learning Objective: 19th-century Filipino ilustrados' access to banned
+   281→   281→  European Enlightenment texts, and the social cost of intellectualism
+   282→   282→  under a friar-controlled information environment.
+   283→   283→NPC(s) Involved: Pilosopo Tasyo, two gossiping market vendors (invented)
+   284→   284→Trigger: After first entering San Diego town plaza in Chapter 3
+   285→   285→Objectives:
+   286→   286→  1. Overhear two vendors gossiping about "the old fool's books"
+   287→   287→  2. Visit Tasyo's hut and ask about his library
+   288→   288→  3. Choose a dialogue branch: ask about a specific banned book
+   289→   289→     (cosmetic-only branching — all paths lead to same unlock)
+   290→   290→Completion Requirement: Complete the 3 objectives above
+   291→   291→Rewards: +40 Knowledge XP, Codex unlock "Pilosopo Tasyo — full bio,"
+   292→   292→  Journal entry "The Loneliest Library in San Diego"
+   293→   293→Historical Explanation: Short footnote on real ilustrados (e.g. the
+   294→   294→  Propaganda Movement figures Rizal was writing for/about) and how
+   295→   295→  owning certain books was itself politically dangerous.
+   296→   296→```
+   297→   297→
+   298→   298→Sample counts to actually build for MVP: **7 Main Quests** (one per Noli chapter minimum, expand for Fili), **~20 Side Quests**, **~15 Knowledge Quests** (pure Codex/lore digs, no combat-adjacent mechanic at all), **~30 Collectibles** (found letters, pressed flowers from Maria Clara's garden, old coins, etc. — see Section 15 Codex "Artifacts" category).
+   299→   299→
+   300→   300→---
+   301→   301→
+   302→   302→## 11. DIALOGUE SYSTEM
+   303→   303→
+   304→   304→- **Branching but non-lethal to progress:** every branch is flavor/characterization, never a fail-state. This keeps the "witness, don't rewrite" pillar intact while still giving Pokémon-style dialogue-choice satisfaction.
+   305→   305→- **Two dialogue registers, togglable in Settings:** (a) Filipino-flavored English (period-appropriate but readable — "Salamat, iho, but I must speak with your father first"), and (b) a Tagalog-primary mode for classroom use. Never machine-translate; write both natively.
+   306→   306→- **Speech bubble rules borrowed from Pokémon:** portrait bust on one side, name plate, A-to-advance, hold-to-fast-forward, auto-log every line to the Journal.
+   307→   307→- **Historical figures' dialogue is paraphrase-bounded:** no invented dialogue is ever presented as a *direct quote* from Rizal's actual biography (only the novel's fictional characters get full invented dialogue, since they're already fictional).
+   308→   308→
+   309→   309→---
+   310→   310→
+   311→   311→## 12. PLAYER PROGRESSION — KNOWLEDGE XP & RANKS
+   312→   312→
+   313→   313→| Rank | XP Threshold (suggested) | Unlocks |
+   314→   314→|---|---|---|
+   315→   315→| Reader | 0 | Journal, basic Codex tab |
+   316→   316→| Student | 500 | Codex "Vocabulary" tab, hint tokens purchasable |
+   317→   317→| Scholar | 1,500 | Codex "Historical Terms" + "Timeline" tabs, harder optional quiz variant |
+   318→   318→| Historian | 3,500 | Codex "Artifacts" tab, developer-commentary-style bonus footnotes |
+   319→   319→| Illustrado | 6,000 (~100% main story) | Full Codex, Ending "Certificate," New Game+ with a "Historian Mode" (extra primary-source excerpts, properly short/paraphrased per Section 21's copyright rule) |
+   320→   320→
+   321→   321→XP sources: quiz correctness (small, since we don't want test-anxiety to be the main driver), **first-time discovery** of a location/NPC/item (large — rewards curiosity, Pokémon-Dex-style), quest completion (medium), Journal reflection entries where the player writes 1–2 sentences in their own words (bonus XP, optional, never required — light UGC hook).
+   322→   322→
+   323→   323→---
+   324→   324→
+   325→   325→## 13. GAME ECONOMY
+   326→   326→
+   327→   327→No numeric "gold" grind. A single soft currency, **Sipat** (roughly "insight/observation" in Filipino), earned from Knowledge Quests and Codex completion %, spendable at the Bookstore on **cosmetic-only** items: period-appropriate outfit recolors, journal stickers/wax seals, cosmetic pets (a Golden Retriever... no — a period-correct carabao or a pet turtle following the player), and hint tokens (reveal one puzzle step). Nothing is pay-to-win because nothing is competitive.
+   328→   328→
+   329→   329→---
+   330→   330→
+   331→   331→## 14. UI FLOW (WIREFRAME NOTES)
+   332→   332→
+   333→   333→```
+   334→   334→[Title Screen] → [New/Continue/Settings/Credits]
+   335→   335→      │
+   336→   336→      ▼ (New Game)
+   337→   337→[Name & Pronoun Picker] → [Dialogue Tone Picker: Curious/Skeptical/Dismissive]
+   338→   338→      │
+   339→   339→      ▼
+   340→   340→[Prologue cutscene, non-skippable first playthrough]
+   341→   341→      │
+   342→   342→      ▼
+   343→   343→┌─────────────── IN-GAME HUD (always-on, minimal) ───────────────┐
+   344→   344→│  [Chapter Medal count]   [Knowledge XP bar]   [Menu icon]        │
+   345→   345→└──────────────────────────────────────────────────────────────────┘
+   346→   346→      │ (press Menu)
+   347→   347→      ▼
+   348→   348→┌──────────────── PAUSE MENU (Pokémon-style radial/list) ─────────┐
+   349→   349→│  Journal | Codex | Achievements | Save | Settings | Quit         │
+   350→   350→└──────────────────────────────────────────────────────────────────┘
+   351→   351→```
+   352→   352→- **Journal:** chronological scrollback, auto-written, filterable by chapter.
+   353→   353→- **Codex:** grid of silhouette-locked/unlocked entries, tabs = Characters / Locations / Terms / Books & Letters / Events / Timeline / Artifacts / Vocabulary (per the original spec's "Everything unlocks progressively").
+   354→   354→- **Quiz Modal:** appears end-of-chapter, framed as "Journal Recap — how much do YOU remember?", 2–4 questions, immediate soft feedback (no "WRONG" buzzer — instead "Here's what actually happened:" + footnote).
+   355→   355→
+   356→   356→---
+   357→   357→
+   358→   358→## 15. RIZAL CODEX — SEED DATA (real entries to ship at launch, not placeholders)
+   359→   359→
+   360→   360→**Characters tab** (minimum launch set, each needs: portrait, 2–3 sentence bio, "first encountered" chapter tag, relationships web):
+   361→   361→Crisóstomo Ibarra / Simoun, Maria Clara, Elias, Padre Dámaso, Padre Salví, Capitán Tiago, Sisa, Basilio, Crispin, Pilosopo Tasyo, Doña Victorina, Don Tiburcio, Lt. Guevara, Cabesang Tales, Tandang Selo, Juli, Isagani, Paulita Gomez, Padre Florentino, Padre Camorra (handled per Section 21), Don Custodio, Ben-Zayb, Quiroga.
+   362→   362→
+   363→   363→**Locations tab:** San Diego town plaza, San Diego church & convent, Laguna de Bay, Ibarra family tomb (forest), the steamship Tabo, University of Santo Tomas, Quiapo Fair, Padre Florentino's coastal estate.
+   364→   364→
+   365→   365→**Historical Terms tab:** *ilustrado, principalía, friarocracy, Propaganda Movement, Katipunan* (referenced only, since it postdates the novels' setting but is essential context), *Guardia Civil*, *encomienda*-adjacent land-rent abuses (as dramatized via Cabesang Tales).
+   366→   366→
+   367→   367→**Books & Letters tab:** in-fiction letters (Ibarra's letters to Maria Clara), plus real-world companion entries on *Noli Me Tangere* and *El Filibusterismo* themselves as published objects (dates, dedications, publication cities — Berlin 1887, Ghent 1891).
+   368→   368→
+   369→   369→**Timeline tab:** a real chronological line from 1861 (Rizal's birth) through 1896 (execution), letting the player see where the *fictional* novel's 1887/1891 setting sits inside the *real* biography — this is the single best "aha" unlock in the whole Codex and should be teased early, fully unlocked only at the Epilogue.
+   370→   370→
+   371→   371→**Artifacts tab:** collectible items (Maria Clara's locket, Elias's grandfather's ledger page, a pressed sampaguita, a cracked terracotta jar) tied to Collectible-type quests.
+   372→   372→
+   373→   373→---
+   374→   374→
+   375→   375→## 16. JOURNAL
+   376→   376→
+   377→   377→Auto-writes in first person ("Today I watched Ibarra..."), one entry per major beat, editable by the player only in the optional bonus-XP reflection field (Section 12). Chapter-end auto-summaries roll multiple entries into a one-paragraph recap for the Ending's "Timeline Review."
+   378→   378→
+   379→   379→---
+   380→   380→
+   381→   381→## 17. SAVE SYSTEM
+   382→   382→
+   383→   383→- Manual save at any Library/Archive/Convent checkpoint.
+   384→   384→- Autosave on every chapter-end Medal award.
+   385→   385→- Checkpoint save immediately before any non-skippable cutscene (in case of app crash/close).
+   386→   386→- 3 save slots, each showing: chapter, % Codex complete, % Achievements complete, playtime, last-seen location thumbnail.
+   387→   387→- Data model given in Section 19 (Postgres schema) — saves are server-synced when logged in (JWT), with a local-storage-free browser fallback for anonymous play (per this environment's own storage rules, the *shipped* game's backend Postgres is the real persistence layer — not localStorage).
+   388→   388→
+   389→   389→---
+   390→   390→
+   391→   391→## 18. ACHIEVEMENTS (sample set, expand freely)
+   392→   392→
+   393→   393→"The Listener" (talk to every NPC in Ch.1) · "Empty-Handed" (finish Noli without missing a single Collectible) · "Then and Now" (identify all Fili "callback" NPCs) · "Footnote Reader" (open 100% of historical pop-ups rather than skipping) · "The Long Silence" (complete the interstitial without skipping dialogue) · "Illustrado" (100% Codex).
+   394→   394→
+   395→   395→---
+   396→   396→
+   397→   397→## 19. TECHNICAL RECOMMENDATIONS
+   398→   398→
+   399→   399→```
+   400→   400→ph-history-game/
+   401→   401→├── client/                       React + TS + Vite host shell
+   402→   402→│   ├── src/
+   403→   403→│   │   ├── game/                 Phaser 3 lives here
+   404→   404→│   │   │   ├── config.ts
+   405→   405→│   │   │   ├── scenes/           BootScene, PrologueScene, TownScene, ...
+   406→   406→│   │   │   └── data/             codex.ts, chapters.ts, quests.ts (typed content)
+   407→   407→│   │   ├── ui/                   React overlay: HUD, Codex, Journal, Quiz, Dialogue
+   408→   408→│   │   └── styles/
+   409→   409→│   └── public/assets/            sprites/ tilesets/ audio/ ui/  ← Carl's Drive assets go here
+   410→   410→├── server/                       Node + Express + TS
+   411→   411→│   ├── src/
+   412→   412→│   │   ├── db/                   schema.sql, pool.ts
+   413→   413→│   │   ├── routes/                auth.ts, progress.ts, codex.ts
+   414→   414→│   │   ├── middleware/            auth.ts (JWT verify)
+   415→   415→│   │   └── models/
+   416→   416→│   └── .env.example
+   417→   417→└── README.md
+   418→   418→```
+   419→   419→
+   420→   420→- **State bridge:** Phaser scenes emit events (`game.events.emit('codex:unlock', id)`); a thin React context subscribes and re-renders overlay UI — avoids fighting Phaser's own render loop with React reconciliation.
+   421→   421→- **Content-as-data:** chapters/quests/codex are typed TS objects (not hardcoded in scene logic) so writers can add content without touching engine code — this is the single highest-leverage architecture decision for a 150–300-"page" scope project, because it lets the GDD's prose (this very document) become literal source data.
+   422→   422→- **Auth:** JWT access + refresh token pair; Postgres `users`, `save_slots`, `codex_progress`, `journal_entries`, `achievements` tables (starter schema included in the scaffold below).
+   423→   423→- **Testing priority order for an MVP:** Prologue → Chapter 1 → save/load round-trip → Codex unlock pipeline → repeat for remaining chapters. Do not build all 11 chapters' scenes before validating this pipeline once.
+   424→   424→
+   425→   425→---
+   426→   426→
+   427→   427→## 20. MINI-GAMES (mechanic spec, one per type)
+   428→   428→
+   429→   429→| Mini-game | Mechanic | Used in |
+   430→   430→|---|---|---|
+   431→   431→| Timeline Arrangement | Drag real/fictional events into correct order on a rope-and-clothespin UI | Ch.10 (Tales' fall), Epilogue |
+   432→   432→| Hidden Objects | Parallax scene, tap/click sprites hidden in foreground clutter | Maria Clara's garden, Tasyo's hut |
+   433→   433→| Letter Assembly | Drag torn paper fragments to reconstruct a document | Ch.6 frame-up evidence, Ch.9 posters |
+   434→   434→| Book Matching | Memory-match author quotes/portraits to correct book (light, not verbatim-reproduction — summarized blurbs only, see Section 21) | Bookstore side-content |
+   435→   435→| Dialogue Choices | Branching, cosmetic-only (Section 11) | Every NPC conversation |
+   436→   436→| Memory Matching | Classic face-down pairs, themed to Codex portraits | Bookstore minigame corner |
+   437→   437→| Translation | Tagalog↔Spanish-loanword matching (light language-history lesson) | UST classroom scenes |
+   438→   438→| Historical Investigation | Multi-clue deduction board (a light "Ace Attorney" board, no accusation-fail state — just reveals the truth once enough clues are found) | Ch.2, Ch.6 |
+   439→   439→| Reading Challenge | Timed but low-pressure paragraph-comprehension check, always paraphrased text (never a lengthy verbatim reproduction) | Optional Scholar-rank bonus content |
+   440→   440→
+   441→   441→---
+   442→   442→
+   443→   443→## 21. HISTORICAL ACCURACY & CONTENT-SENSITIVITY NOTES
+   444→   444→
+   445→   445→The source novels contain domestic abuse, wrongful imprisonment, torture, exhumation, a child's beating, a mother's descent into madness, execution, attempted/implied sexual assault (Padre Camorra toward Juli), and suicide (Juli's death, Maria Clara's threatened death). Given the likely player age range (Section 3 includes Grade 9–10 students), the build should:
+   446→   446→
+   447→   447→- **Depict consequences, not mechanics.** Sisa's madness, Juli's death, and Elias's death are shown through **aftermath, framing, and dialogue**, never through graphic on-screen depiction of the act itself. Use screen-fades, off-screen sound design, and NPC reaction shots — the same technique the *novel itself* often uses (Rizal narrates around the worst moments too).
+   448→   448→- **No interactive self-harm or violence mechanics.** These sequences are cutscene-only; the player never presses a button that "does" the harmful act.
+   449→   449→- **Padre Camorra's predation is referenced, never staged.** Keep it at the level the Codex/Journal would record historically ("a friar known for pursuing local women forced Juli to make an impossible choice") without depicting the confrontation.
+   450→   450→- **Quotations stay short and are legally/ethically safe.** Elias's famous last line and any other line from the novels used in-game should be **paraphrased** in original game dialogue rather than reproduced verbatim at length, both because these are literary works still under a publisher's edition copyright in translation and because paraphrase is simply better game-writing (it's an interactive medium, not a book excerpt viewer).
+   451→   451→- **Historical figures vs. fictional figures stay clearly separated in the Codex UI** (e.g., a small "Fictional character created by Rizal" vs. "Historical figure" tag on every entry) — this single UI tag does a huge amount of the game's actual *educational* labor, since student confusion between the two is the #1 real-world misconception the game should correct.
+   452→   452→
+   453→   453→---
+   454→   454→
+   455→   455→## 22. ASSET PIPELINE
+   456→   456→
+   457→   457→- **Art direction:** GBA/NDS-era pixel art, ~32×32 or 48×48 character tiles (match whichever your existing Drive assets already use — audit first, see Section 24 Step 0), painterly cutscene stills for the big non-interactive beats (Elias's death, the lamp explosion, Rizal's execution) rather than trying to pixel-animate them.
+   458→   458→- **Palette:** warm ilustrado-era sepia/gold for Noli, cooling to steel-blue/verdigris for Fili (ties to Section 9).
+   459→   459→- **Audio:** kundiman-inspired original motifs; period rondalla instrumentation (bandurria, laúd) for town themes; sparse, low string drone for Fili's tension beats.
+   460→   460→- **Asset folder contract** (so existing Drive assets slot in with zero renaming): `public/assets/sprites/characters/`, `.../tilesets/`, `.../audio/bgm/`, `.../audio/sfx/`, `.../ui/`. Whatever's already in the Drive folder should mirror this shape — audit it against this contract before the next build session.
+   461→   461→
+   462→   462→---
+   463→   463→
+   464→   464→## 23. PRODUCTION ROADMAP
+   465→   465→
+   466→   466→| Phase | Scope | Exit criteria |
+   467→   467→|---|---|---|
+   468→   468→| 0 — Foundation (this session) | Repo scaffold, Prologue scene playable, save/load round-trip, Codex data pipeline | `npm run dev` shows Prologue → wake-up-in-1887 transition |
+   469→   469→| 1 — Noli Vertical Slice | Chapters 1–3 fully playable, 1 mini-game type wired, quiz flow, first Chapter Medal | A stranger could play 20 minutes start-to-finish |
+   470→   470→| 2 — Noli Complete | Chapters 4–7, all Noli Codex entries, Achievements v1 | Full Noli arc playable, Elias's death lands emotionally |
+   471→   471→| 3 — Interstitial + Fili Vertical Slice | Time-skip, Ch.8–9 | Tone-shift (Section 9) verifiably readable in a playtest |
+   472→   472→| 4 — Fili Complete + Ending | Ch.10–11, Epilogue, Ending screen (Timeline Review, Codex %, Certificate) | Full game completable start-to-finish |
+   473→   473→| 5 — Polish & Accessibility | Audio pass, difficulty/hint tuning, mobile input pass | Ready for a public/classroom pilot |
+   474→   474→
+   475→   475→---
+   476→   476→
+   477→   477→## 24. IMMEDIATE NEXT STEPS (for whoever/whatever builds this next)
+   478→   478→
+   479→   479→0. **Audit the existing Drive asset folder** against Section 22's folder contract before writing new scene code that assumes placeholder art.
+   480→   480→1. Wire real sprites into the scaffold's placeholder rectangles (see the delivered code — it renders colored rectangles with labels where art goes, on purpose, so nothing blocks on missing assets).
+   481→   481→2. Fill out `chapters.ts`/`quests.ts`/`codex.ts` chapter-by-chapter following Sections 8/10/15 above — they're already typed and partially seeded in the scaffold.
+   482→   482→3. Stand up Postgres locally (`schema.sql` provided), confirm the JWT auth round-trip, then move to Phase 1 of the roadmap.
+   483→   483→
+   484→   484→---
+   485→   485→
+   486→   486→## 25. FUTURE EXPANSION IDEAS
+   487→   487→
+   488→   488→- **Teacher Dashboard:** a lightweight web view (reuses the same Postgres/JWT backend) where a teacher account sees aggregate Codex completion / quiz accuracy per class — turns the game into an assignable classroom tool, which is a strong distribution channel for a Philippine-history game.
+   489→   489→- **"Mi Ultimo Adios" epilogue DLC:** a short, entirely non-interactive, beautifully art-directed reading-mode chapter built around Rizal's real farewell poem (paraphrased/contextualized, never reproduced at full length per Section 21) as a premium free content-drop around every December 30 (Rizal Day).
+   490→   490→- **Other Ilustrados mode:** small side-episodes about Marcelo del Pilar, Graciano López Jaena, or the Gomburza priests, reusing the same engine/Codex systems.
+   491→   491→- **New Game+ "Historian Mode":** unlocks longer primary-source excerpts (properly licensed/paraphrased), developer commentary, and a harder investigation-board difficulty.
