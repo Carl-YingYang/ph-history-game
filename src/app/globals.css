@@ -1,302 +1,47 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-
-  /* Neo-brutalism custom colors */
-  --color-neo-cream: #FFF8E7;
-  --color-neo-yellow: #FFD60A;
-  --color-neo-pink: #FF6B9D;
-  --color-neo-green: #00C853;
-  --color-neo-black: #000000;
-  --color-neo-white: #FFFFFF;
-  --color-neo-brown: #8B4513;
-  --color-neo-red: #FF3D00;
-  --color-neo-blue: #2979FF;
-  --color-neo-orange: #FF9100;
-  --color-neo-purple: #AA00FF;
-  --color-neo-cream-dark: #2A2518;
-  --color-neo-yellow-dark: #BFA000;
-  --color-neo-pink-dark: #CC5580;
-  --color-neo-green-dark: #009640;
-}
-
-:root {
-  --radius: 0.75rem;
-  --background: #FFF8E7;
-  --foreground: #000000;
-  --card: #FFFFFF;
-  --card-foreground: #000000;
-  --popover: #FFFFFF;
-  --popover-foreground: #000000;
-  --primary: #FFD60A;
-  --primary-foreground: #000000;
-  --secondary: #FF6B9D;
-  --secondary-foreground: #000000;
-  --muted: #F5EDD6;
-  --muted-foreground: #4A4530;
-  --accent: #00C853;
-  --accent-foreground: #000000;
-  --destructive: #FF3D00;
-  --border: #000000;
-  --input: #000000;
-  --ring: #FFD60A;
-  --chart-1: #FFD60A;
-  --chart-2: #FF6B9D;
-  --chart-3: #00C853;
-  --chart-4: #FF9100;
-  --chart-5: #AA00FF;
-  --sidebar: #FFF8E7;
-  --sidebar-foreground: #000000;
-  --sidebar-primary: #FFD60A;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #00C853;
-  --sidebar-accent-foreground: #000000;
-  --sidebar-border: #000000;
-  --sidebar-ring: #FFD60A;
-}
-
-.dark {
-  --background: #1A1712;
-  --foreground: #FFF8E7;
-  --card: #2A2518;
-  --card-foreground: #FFF8E7;
-  --popover: #2A2518;
-  --popover-foreground: #FFF8E7;
-  --primary: #FFD60A;
-  --primary-foreground: #000000;
-  --secondary: #FF6B9D;
-  --secondary-foreground: #000000;
-  --muted: #332E20;
-  --muted-foreground: #C4B98A;
-  --accent: #00C853;
-  --accent-foreground: #000000;
-  --destructive: #FF3D00;
-  --border: #FFF8E7;
-  --input: #FFF8E7;
-  --ring: #FFD60A;
-  --chart-1: #FFD60A;
-  --chart-2: #FF6B9D;
-  --chart-3: #00C853;
-  --chart-4: #FF9100;
-  --chart-5: #AA00FF;
-  --sidebar: #1A1712;
-  --sidebar-foreground: #FFF8E7;
-  --sidebar-primary: #FFD60A;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #00C853;
-  --sidebar-accent-foreground: #000000;
-  --sidebar-border: #FFF8E7;
-  --sidebar-ring: #FFD60A;
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-weight: 600;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-  ::selection {
-    background-color: #FFD60A;
-    color: #000000;
-  }
-}
-
-/* ============================================
-   NEO-BRUTALISM UTILITY CLASSES
-   Project Noor — Philippine History RPG
-   ============================================ */
-
-.neo-brutal {
-  border: 3px solid #000000;
-  border-radius: 0.5rem;
-  box-shadow: 4px 4px 0 #000000;
-}
-
-.neo-brutal-yellow {
-  background-color: #FFD60A;
-  border: 3px solid #000000;
-  border-radius: 0.5rem;
-  box-shadow: 4px 4px 0 #000000;
-  color: #000000;
-}
-
-.neo-brutal-pink {
-  background-color: #FF6B9D;
-  border: 3px solid #000000;
-  border-radius: 0.5rem;
-  box-shadow: 4px 4px 0 #000000;
-  color: #000000;
-}
-
-.neo-brutal-green {
-  background-color: #00C853;
-  border: 3px solid #000000;
-  border-radius: 0.5rem;
-  box-shadow: 4px 4px 0 #000000;
-  color: #000000;
-}
-
-.neo-brutal-card {
-  background-color: #FFFFFF;
-  border: 3px solid #000000;
-  border-radius: 0.75rem;
-  box-shadow: 6px 6px 0 #000000;
-  padding: 1.5rem;
-}
-
-.dark .neo-brutal-card {
-  background-color: #2A2518;
-  border-color: #FFF8E7;
-  box-shadow: 6px 6px 0 #FFF8E7;
-}
-
-/* ============================================
-   GAME CANVAS FRAME
-   ============================================ */
-
-.game-canvas-frame {
-  border: 4px solid #000000;
-  border-radius: 0.5rem;
-  box-shadow: 6px 6px 0 #000000;
-  overflow: hidden;
-  background-color: #000000;
-}
-
-.dark .game-canvas-frame {
-  border-color: #FFF8E7;
-  box-shadow: 6px 6px 0 #FFF8E7;
-}
-
-/* ============================================
-   NEO-BRUTALISM BUTTON EFFECTS
-   ============================================ */
-
-.neo-brutal-yellow:active,
-.neo-brutal-pink:active,
-.neo-brutal-green:active,
-.neo-brutal:active,
-.neo-brutal-card:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000000;
-}
-
-.dark .neo-brutal-yellow:active,
-.dark .neo-brutal-pink:active,
-.dark .neo-brutal-green:active,
-.dark .neo-brutal:active {
-  box-shadow: 2px 2px 0 #FFF8E7;
-}
-
-.neo-brutal-yellow:hover,
-.neo-brutal-pink:hover,
-.neo-brutal-green:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 #000000;
-}
-
-/* ============================================
-   CUSTOM SCROLLBAR — NEO-BRUTALISM
-   ============================================ */
-
-::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
-}
-
-::-webkit-scrollbar-track {
-  background: #FFF8E7;
-  border-left: 3px solid #000000;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #FFD60A;
-  border: 3px solid #000000;
-  border-radius: 0;
-  box-shadow: 2px 2px 0 #000000;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #FF6B9D;
-}
-
-::-webkit-scrollbar-corner {
-  background: #FFF8E7;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #1A1712;
-  border-color: #FFF8E7;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #FFD60A;
-  border-color: #FFF8E7;
-  box-shadow: 2px 2px 0 #FFF8E7;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #FF6B9D;
-}
-
-.dark ::-webkit-scrollbar-corner {
-  background: #1A1712;
-}
-
-/* Firefox scrollbar */
 * {
-  scrollbar-width: thick;
-  scrollbar-color: #FFD60A #FFF8E7;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.dark * {
-  scrollbar-color: #FFD60A #1A1712;
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: monospace;
 }
+
+#__next {
+  width: 100%;
+  height: 100%;
+}
+
+/* Pokémon-style pixel font feel */
+.pixel-text {
+  font-family: monospace;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+/* Full-screen game container */
+.game-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.game-fullscreen canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Custom scrollbar - minimal */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }

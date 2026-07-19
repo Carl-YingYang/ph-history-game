@@ -1,14 +1,9 @@
 import Phaser from 'phaser';
+import { GAME_WIDTH, GAME_HEIGHT } from '../config';
 
 /**
- * BootScene — loads ALL real game assets from the /public/assets/ directory.
- *
- * Asset structure:
- *   /assets/chars/       — Extracted character sprites (ibarra.png, damaso.png, etc.)
- *   /assets/portraits/   — Character portrait images
- *   /assets/backgrounds/ — Scene backgrounds (library.png, town.png, lake.png, etc.)
- *   /assets/items/       — Collectible items (book.png, letter.png, etc.)
- *   /assets/sprites/     — Full sprite sheets (for reference/cropping at runtime)
+ * BootScene — Load all game assets.
+ * Minimal. No fancy UI. Just loads data and moves on.
  */
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -16,99 +11,175 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // ── Show loading bar ──────────────────────────────────────────
-    const barW = 500;
-    const barH = 24;
-    const barX = (800 - barW) / 2;
-    const barY = 300 - barH / 2;
+    // ── Loading bar ─────────────────────────────────────────────
+    const barW = 200;
+    const barH = 8;
+    const barX = (GAME_WIDTH - barW) / 2;
+    const barY = GAME_HEIGHT / 2;
 
-    const bg = this.add.rectangle(400, 300, barW + 12, barH + 12, 0x000000);
-    const bar = this.add.rectangle(barX, barY, 0, barH, 0xFFD60A).setOrigin(0, 0);
+    this.add.rectangle(GAME_WIDTH / 2, barY, barW + 4, barH + 4, 0x000000);
+    const bar = this.add.rectangle(barX, barY, 0, barH, 0xf8f8f8).setOrigin(0, 0.5);
 
     this.load.on('progress', (value: number) => {
       bar.width = barW * value;
     });
 
-    // ── Character Sprites (individual extracted frames) ────────────
-    const characterNames = [
-      'ibarra', 'elias', 'damaso', 'clara', 'sisa',
-      'salvi', 'simoun', 'basilio', 'tiago', 'rizal',
-    ];
-    for (const name of characterNames) {
-      this.load.image(`char-${name}`, `/assets/chars/${name}.png`);
+    // ── Player sprites (Ibarra - the main character) ────────────
+    for (let i = 0; i < 10; i++) {
+      this.load.image(`player_walk_${i}`, `/assets/chars/ibarra_walk_${i}.png`);
+    }
+    for (let i = 0; i < 11; i++) {
+      this.load.image(`player_idle_${i}`, `/assets/chars/ibarra_idle_${i}.png`);
     }
 
-    // NPC sprites
-    const npcNames = [
-      'mang-tenyo', 'doctor', 'teacher', 'boatman', 'blacksmith', 'vendor',
-      'civil-guard', 'spanish-soldier', 'spanish-officer', 'wealthy-spaniard',
-      'friar', 'nun', 'altar-boy', 'church-worker',
-      'young-farmer', 'old-farmer', 'female-farmer',
-    ];
-    for (const name of npcNames) {
-      this.load.image(`char-${name}`, `/assets/chars/${name}.png`);
+    // ── NPC sprites (use idle frames from extracted sheets) ─────
+    // Mang Tenyo - use misc-npc idle frame
+    for (let i = 0; i < 12; i++) {
+      this.load.image(`npc_misc_idle_${i}`, `/assets/chars/misc-npc_idle_${i}.png`);
+    }
+    // Spanish NPC (Lt. Guevara, Civil Guard)
+    for (let i = 0; i < 11; i++) {
+      this.load.image(`npc_spanish_idle_${i}`, `/assets/chars/spanish-npc_idle_${i}.png`);
+    }
+    // Villager NPC (Old Woman, Vendor)
+    for (let i = 0; i < 10; i++) {
+      this.load.image(`npc_villager_idle_${i}`, `/assets/chars/villager-npc_idle_${i}.png`);
+    }
+    // Religious NPC (Friar, Priest)
+    for (let i = 0; i < 11; i++) {
+      this.load.image(`npc_religious_idle_${i}`, `/assets/chars/religious-npc_idle_${i}.png`);
     }
 
-    // ── Portraits ──────────────────────────────────────────────────
-    const portraitNames = [
-      'ibarra', 'elias', 'damaso', 'clara', 'sisa', 'sisa_healthy', 'sisa_mad',
-      'salvi', 'simoun', 'basilio', 'tiago', 'rizal',
-      'mang-tenyo', 'doctor', 'teacher', 'boatman',
-      'civil-guard', 'spanish-soldier', 'friar', 'nun',
-    ];
-    for (const name of portraitNames) {
-      this.load.image(`portrait-${name}`, `/assets/portraits/${name}.png`);
-    }
+    // ── Items (quest collectibles) ──────────────────────────────
+    this.load.image('item_book', '/assets/items/book.png');
+    this.load.image('item_letter', '/assets/items/letter.png');
+    this.load.image('item_scroll', '/assets/items/scroll.png');
 
-    // ── Backgrounds ────────────────────────────────────────────────
-    this.load.image('bg-library', '/assets/backgrounds/library.png');
-    this.load.image('bg-town', '/assets/backgrounds/town.png');
-    this.load.image('bg-lake', '/assets/backgrounds/lake.png');
-    this.load.image('bg-church', '/assets/backgrounds/church.png');
-    this.load.image('bg-bahay-nbato', '/assets/backgrounds/bahay-nbato.png');
+    // ── Background images for building facades ──────────────────
+    this.load.image('bg_church', '/assets/backgrounds/church.png');
+    this.load.image('bg_town', '/assets/backgrounds/town.png');
 
-    // ── Items ──────────────────────────────────────────────────────
-    const itemNames = ['book', 'letter', 'scroll', 'key', 'coin', 'medal'];
-    for (const name of itemNames) {
-      this.load.image(`item-${name}`, `/assets/items/${name}.png`);
-    }
-
-    // ── Animals ────────────────────────────────────────────────────
-    this.load.image('char-crocodile', '/assets/chars/crocodile.png');
-    this.load.image('char-carabao', '/assets/chars/carabao.png');
-
-    // ── Full sprite sheets (for runtime cropping if needed) ────────
-    this.load.image('sheet-ibarra', '/assets/sprites/ibara.jpg');
-    this.load.image('sheet-damaso', '/assets/sprites/damaso.jpg');
-    this.load.image('sheet-elias', '/assets/sprites/elias.jpg');
-    this.load.image('sheet-clara', '/assets/sprites/clara.jpg');
-    this.load.image('sheet-buildings', '/assets/sprites/building-assets.jpg');
-    this.load.image('sheet-nature', '/assets/sprites/nature-assets.jpg');
-    this.load.image('sheet-interior', '/assets/sprites/interior-assets.jpg');
-    this.load.image('sheet-animals', '/assets/sprites/animals-assets.jpg');
-
-    // ── Fallback: generate minimal placeholder textures ────────────
-    // Only used if real assets fail to load
-    this.makePlaceholder('player-fallback', 0xFFD60A, 32, 48);
-    this.makePlaceholder('npc-fallback', 0xFF6B9D, 32, 48);
-    this.makePlaceholder('item-fallback', 0x00C853, 24, 24);
+    // ── Generate tile textures after load completes ──────────────
+    this.load.on('complete', () => {
+      this.generateTileTextures();
+    });
   }
 
   create() {
-    // Clean up loading bar
-    this.children.removeAll();
-
-    // Start the game!
-    this.scene.start('PrologueScene');
+    this.scene.start('TitleScene');
   }
 
-  private makePlaceholder(key: string, color: number, w: number, h: number) {
+  private generateTileTextures() {
+    const T = 32;
+
+    // Grass tile
+    this.createTile('tile_grass', T, 0x2d5a27, 0x3a7a30);
+    // Path tile
+    this.createTile('tile_path', T, 0xc4a35a, 0xb89845);
+    // Water tile
+    this.createTile('tile_water', T, 0x2a6ab5, 0x3478c6);
+    // Tree base (dark green)
+    this.createTile('tile_tree_base', T, 0x1a3a15, 0x2d5a27);
+    // Building wall
+    this.createTile('tile_wall', T, 0x8b7355, 0x7a6348);
+    // Building door
+    this.createTile('tile_door', T, 0x6b4226, 0x5a3520);
+    // Roof
+    this.createTile('tile_roof', T, 0x8b2500, 0x7a2000);
+    // Fence
+    this.createTile('tile_fence', T, 0x8b6914, 0x7a5c10);
+    // Bridge
+    this.createTile('tile_bridge', T, 0x9c7c4a, 0x8a6c3a);
+    // Flower grass
+    this.createTile('tile_flower', T, 0x2d5a27, 0xff6b9d, true);
+    // Plaza stone
+    this.createTile('tile_stone', T, 0x9a9a9a, 0x888888);
+
+    // Generate tree top (circle on top of tree base)
+    const treeG = this.make.graphics({ x: 0, y: 0 });
+    treeG.fillStyle(0x1a5a15, 1);
+    treeG.fillCircle(T / 2, T / 2 - 4, T / 2 - 2);
+    treeG.fillStyle(0x2d7a27, 0.6);
+    treeG.fillCircle(T / 2 - 3, T / 2 - 6, T / 4);
+    treeG.generateTexture('tile_tree_top', T, T);
+    treeG.destroy();
+
+    // Generate roof tile (triangular)
+    const roofG = this.make.graphics({ x: 0, y: 0 });
+    roofG.fillStyle(0x8b2500, 1);
+    roofG.fillRect(0, T / 2, T, T / 2);
+    roofG.fillStyle(0x7a2000, 1);
+    roofG.fillRect(0, T / 2, T, 4);
+    roofG.fillStyle(0x9b3510, 0.5);
+    roofG.fillRect(2, T / 2 + 4, T - 4, T / 2 - 4);
+    roofG.generateTexture('tile_roof_fill', T, T);
+    roofG.destroy();
+
+    // Generate water with wave animation hint
+    const waterG = this.make.graphics({ x: 0, y: 0 });
+    waterG.fillStyle(0x2a6ab5, 1);
+    waterG.fillRect(0, 0, T, T);
+    waterG.lineStyle(1, 0x5a9ae5, 0.4);
+    for (let wy = 4; wy < T; wy += 8) {
+      waterG.beginPath();
+      waterG.moveTo(0, wy);
+      for (let wx = 0; wx < T; wx += 4) {
+        waterG.lineTo(wx, wy + Math.sin(wx * 0.3) * 2);
+      }
+      waterG.strokePath();
+    }
+    waterG.generateTexture('tile_water_wave', T, T);
+    waterG.destroy();
+
+    // Placeholder NPC sprite (fallback)
+    const npcG = this.make.graphics({ x: 0, y: 0 });
+    npcG.fillStyle(0xff6b9d, 1);
+    npcG.fillRect(4, 0, 24, 32);
+    npcG.fillStyle(0xffcc99, 1);
+    npcG.fillCircle(16, 8, 7);
+    npcG.lineStyle(1, 0x000000, 0.5);
+    npcG.strokeRect(4, 0, 24, 32);
+    npcG.generateTexture('npc_placeholder', 32, 32);
+    npcG.destroy();
+
+    // Placeholder item sprite (fallback)
+    const itemG = this.make.graphics({ x: 0, y: 0 });
+    itemG.fillStyle(0xffd60a, 1);
+    itemG.fillCircle(12, 12, 10);
+    itemG.lineStyle(2, 0x000000, 1);
+    itemG.strokeCircle(12, 12, 10);
+    itemG.generateTexture('item_placeholder', 24, 24);
+    itemG.destroy();
+  }
+
+  private createTile(key: string, size: number, color1: number, color2: number, hasFlower = false) {
     const g = this.make.graphics({ x: 0, y: 0 });
-    g.fillStyle(color, 1);
-    g.fillRect(0, 0, w, h);
-    g.lineStyle(3, 0x000000, 1);
-    g.strokeRect(0, 0, w, h);
-    g.generateTexture(key, w, h);
+    g.fillStyle(color1, 1);
+    g.fillRect(0, 0, size, size);
+
+    // Subtle texture variation
+    g.fillStyle(color2, 0.3);
+    for (let px = 0; px < size; px += 4) {
+      for (let py = 0; py < size; py += 4) {
+        if ((px + py) % 8 === 0) {
+          g.fillRect(px, py, 2, 2);
+        }
+      }
+    }
+
+    // Subtle grid line
+    g.lineStyle(0.5, 0x000000, 0.08);
+    g.strokeRect(0, 0, size, size);
+
+    if (hasFlower) {
+      g.fillStyle(0xff6b9d, 1);
+      g.fillCircle(8, 8, 2);
+      g.fillCircle(24, 16, 2);
+      g.fillStyle(0xffd60a, 1);
+      g.fillCircle(16, 24, 2);
+    }
+
+    g.generateTexture(key, size, size);
     g.destroy();
   }
 }

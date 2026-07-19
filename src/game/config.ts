@@ -1,11 +1,17 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
-import { PrologueScene } from './scenes/PrologueScene';
-import { SanDiegoTownScene } from './scenes/SanDiegoTownScene';
-import { LagunaDeBayScene } from './scenes/LagunaDeBayScene';
+import { TitleScene } from './scenes/TitleScene';
+import { SanDiegoScene } from './scenes/SanDiegoScene';
 
-export const GAME_WIDTH = 800;
-export const GAME_HEIGHT = 600;
+// Game resolution - classic Pokémon-like aspect ratio
+export const GAME_WIDTH = 480;
+export const GAME_HEIGHT = 320;
+
+// Tile size
+export const TILE_SIZE = 32;
+
+// Scale factor for crisp pixel art
+export const PIXEL_SCALE = 2;
 
 export function createGameConfig(parent: HTMLElement): Phaser.Types.Core.GameConfig {
   return {
@@ -13,8 +19,9 @@ export function createGameConfig(parent: HTMLElement): Phaser.Types.Core.GameCon
     parent,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: '#1a1a2e',
     pixelArt: true,
+    antialias: false,
     physics: {
       default: 'arcade',
       arcade: { gravity: { x: 0, y: 0 }, debug: false },
@@ -23,16 +30,6 @@ export function createGameConfig(parent: HTMLElement): Phaser.Types.Core.GameCon
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [BootScene, PrologueScene, SanDiegoTownScene, LagunaDeBayScene],
+    scene: [BootScene, TitleScene, SanDiegoScene],
   };
 }
-
-export const GameEvents = {
-  CodexUnlock: 'codex:unlock',
-  JournalEntry: 'journal:entry',
-  ChapterMedal: 'chapter:medal',
-  QuizRequested: 'quiz:requested',
-  DialogueLine: 'dialogue:line',
-  KnowledgeXp: 'xp:gained',
-  ChapterTransition: 'chapter:transition',
-} as const;
