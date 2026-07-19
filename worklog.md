@@ -29,3 +29,55 @@ Stage Summary:
 - ESLint passes with no errors
 - Sprite assets properly extracted with transparent backgrounds
 - Game flow: Title → Intro → Explore → Talk → Quest → Collect → Complete
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix all rendering issues — pixel art, camera, scaling, animations, world population
+
+Work Log:
+- Fix 1: Pixel Art Rendering Pipeline
+  - Added `roundPixels: true` to Phaser config
+  - Disabled `imageSmoothingEnabled` on canvas 2D context (all vendor prefixes)
+  - Added `image-rendering: crisp-edges` and `pixelated` CSS rules
+  - Disabled font smoothing on game container
+- Fix 2: Camera Framing
+  - Reduced internal resolution from 480×320 to 320×240 (closer to GBA 240×160)
+  - At 320×240 with 32px tiles: player at 1x scale occupies 21.7% of screen height (vs Pokémon's ~20%)
+  - Enabled `cameras.main.roundPixels = true` for sub-pixel-free camera movement
+- Fix 3: Integer Sprite Scaling
+  - Changed player sprite from `setScale(0.55)` to `setScale(1)` (integer only)
+  - Changed NPC sprites from `setScale(0.5)` to `setScale(1)` (integer only)
+  - Changed quest items from `setScale(0.3)` to `setScale(1)` (integer only)
+  - Adjusted origin from `(0.5, 0.7)` to `(0.5, 0.8)` for feet-based anchoring
+- Fix 4: Broken Idle Sprite Animations
+  - Previously: only showed `player_idle_0` when standing still (static, no animation)
+  - Now: cycles through all 11 idle frames (0-10) at 200ms intervals for breathing effect
+  - Walk animation cycles through 10 frames at 120ms intervals
+  - Added `idleFrame` and `idleTimer` state variables
+  - Fixed key reference: added separate `spaceKey` and `enterKey` vars to avoid recreation each frame
+- Fix 5: World Population
+  - Added 3 new tile types to map data: bush (10), roof_fill (11), sign (12), crate (13)
+  - Created new tile textures in BootScene: tile_bush, tile_sign, tile_crate
+  - Placed bushes along path edges (tiles 5,11,17) for natural boundaries
+  - Placed signs near buildings (Church, Library) for wayfinding
+  - Placed crates in town area for visual interest
+  - Added more flower patches throughout the map
+  - Added sign label text for Church and Library
+  - Added all new tile types to BLOCKED_TILES set for collision
+- Fix 6: HUD Stays Minimal
+  - Only displays current objective text
+  - Tiny font (5px), semi-transparent black background
+  - No dashboards, statistics, XP bars, codex, or journal buttons
+- Adjusted all UI text sizes for 320×240 resolution (title: 18px, subtitle: 8px, prompt: 7px, dialogue: 5px)
+- Pushed to GitHub: https://github.com/Carl-YingYang/ph-history-game.git (force push, commit f243062)
+
+Stage Summary:
+- All 6 rendering fixes implemented and committed
+- Game renders with pixel-perfect nearest-neighbor scaling
+- Internal resolution 320×240 gives Pokémon-like camera framing
+- All sprites at integer scale 1x — no fractional scaling
+- Idle animation properly cycles through all frames
+- World feels populated with bushes, signs, crates, and flowers
+- HUD shows only current objective
+- Pushed to Carl-YingYang/ph-history-game repo
