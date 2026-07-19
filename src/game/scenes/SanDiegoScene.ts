@@ -3,33 +3,34 @@ import { GAME_WIDTH, GAME_HEIGHT, TILE_SIZE } from '../config';
 
 // ─── MAP DATA ────────────────────────────────────────────────────────
 // 0=grass, 1=path, 2=water, 3=wall, 4=tree, 5=door, 6=fence, 7=bridge, 8=stone, 9=flower
+// 10=bush, 11=roof, 12=sign, 13=crate, 14=townhall_wall, 15=townhall_door
 const MAP_W = 40;
 const MAP_H = 30;
 
 const MAP_DATA: number[][] = [
   [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
-  [4,4,4,4,4,4,4,0,0,0,3,3,3,3,3,3,3,3,3,4,4,0,0,0,0,3,3,3,3,3,3,3,0,0,0,4,4,4,4,4],
+  [4,4,4,4,4,4,4,0,0,0,11,3,3,3,3,3,3,3,11,4,4,0,0,0,0,11,3,3,3,3,3,3,11,0,0,0,4,4,4,4],
   [4,4,4,4,4,0,0,0,0,0,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,3,3,3,3,3,3,3,0,0,0,0,4,4,4,4],
-  [4,4,4,0,0,0,0,0,0,0,3,3,5,3,3,5,3,3,3,0,0,0,9,0,0,3,3,3,5,3,3,3,0,0,0,0,0,4,4,4],
+  [4,4,4,0,0,0,0,0,0,0,3,3,5,3,3,5,3,3,3,0,0,9,0,0,0,3,3,3,5,3,3,3,0,0,0,0,0,4,4,4],
   [4,4,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,3,3,3,3,3,3,3,0,0,0,0,0,0,4,4],
-  [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,4],
+  [4,0,0,0,10,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10,0,0,4],
   [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,4],
   [4,4,0,0,0,0,0,1,1,8,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,8,1,1,1,0,0,0,0,4,4,4],
-  [4,4,0,0,0,0,0,1,1,8,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,8,1,1,1,0,0,0,0,4,4,4],
-  [4,4,0,0,9,0,0,1,1,8,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,8,1,1,1,0,0,9,0,0,4,4],
+  [4,4,0,0,9,0,0,1,1,8,8,8,1,1,12,1,1,1,1,1,1,1,12,1,1,1,8,8,8,1,1,1,0,0,9,0,0,4,4],
+  [4,4,0,0,0,0,0,1,1,8,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,8,1,1,1,0,0,0,0,0,4,4],
   [4,4,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,4,4],
-  [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
+  [4,0,0,0,10,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10,0,0,0,4],
   [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
   [6,6,6,6,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,6,6,6,6],
+  [4,0,0,0,0,0,0,1,1,1,1,1,1,13,1,1,1,1,1,1,1,1,1,1,1,13,1,1,1,1,1,1,0,0,0,0,0,0,4],
+  [4,0,0,9,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,9,0,0,4],
   [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
-  [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
-  [4,0,0,0,9,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,9,0,0,0,4],
+  [4,4,0,0,10,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10,0,0,4,4],
   [4,4,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,4,4,4],
   [4,4,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,4,4,4],
-  [4,4,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,4,4,4],
   [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
-  [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
-  [4,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,4],
+  [4,0,0,9,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,9,0,0,0,4],
+  [4,0,0,0,10,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,10,0,0,4],
   [4,4,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,4,4,4,4],
   [4,4,0,0,0,0,0,0,0,0,2,2,2,2,2,7,7,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,4,4,4,4,4],
   [4,4,4,0,0,0,0,0,0,0,2,2,2,2,2,7,7,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,4,4,4,4,4,4],
@@ -40,7 +41,7 @@ const MAP_DATA: number[][] = [
 ];
 
 // Tiles that block movement
-const BLOCKED_TILES = new Set([2, 3, 4, 6]); // water, wall, tree, fence
+const BLOCKED_TILES = new Set([2, 3, 4, 6, 10, 11, 12, 13]); // water, wall, tree, fence, bush, roof, sign, crate
 
 // ─── DIALOGUE TYPES ──────────────────────────────────────────────────
 interface DialogueLine {
@@ -92,7 +93,7 @@ interface NPCDef {
   name: string;
   tileX: number;
   tileY: number;
-  spriteKey: string;  // Texture key for the NPC sprite
+  spriteKey: string;
   facing: 'down' | 'up' | 'left' | 'right';
 }
 
@@ -108,10 +109,12 @@ export class SanDiegoScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Container;
   private playerSprite!: Phaser.GameObjects.Image;
   private playerDir: 'down' | 'up' | 'left' | 'right' = 'down';
-  private playerSpeed = 120;
+  private playerSpeed = 100;
   private isMoving = false;
   private walkFrame = 0;
   private walkTimer = 0;
+  private idleFrame = 0;
+  private idleTimer = 0;
 
   // NPCs
   private npcSprites: Map<string, Phaser.GameObjects.Container> = new Map();
@@ -141,10 +144,13 @@ export class SanDiegoScene extends Phaser.Scene {
 
   // HUD
   private objectiveText?: Phaser.GameObjects.Text;
+  private objectiveBg?: Phaser.GameObjects.Rectangle;
 
   // Input
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private interactKey!: Phaser.Input.Keyboard.Key;
+  private spaceKey!: Phaser.Input.Keyboard.Key;
+  private enterKey!: Phaser.Input.Keyboard.Key;
 
   // Quest flow
   private talkedToMangTenyo = false;
@@ -174,8 +180,8 @@ export class SanDiegoScene extends Phaser.Scene {
     // Input
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    this.spaceKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
     // Start intro
     this.startIntro();
@@ -212,6 +218,10 @@ export class SanDiegoScene extends Phaser.Scene {
       7: 'tile_bridge',
       8: 'tile_stone',
       9: 'tile_flower',
+      10: 'tile_bush',
+      11: 'tile_roof_fill',
+      12: 'tile_sign',
+      13: 'tile_crate',
     };
 
     for (let y = 0; y < MAP_H; y++) {
@@ -223,39 +233,40 @@ export class SanDiegoScene extends Phaser.Scene {
         tile.setOrigin(0.5);
         this.mapTiles[y][x] = tile;
 
-        // Add tree tops on top of tree bases
+        // Add tree tops on top of tree bases — they render above the player
         if (tileType === 4) {
           const treeTop = this.add.image(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, 'tile_tree_top');
           treeTop.setOrigin(0.5);
-          treeTop.setDepth(1);
+          treeTop.setDepth(y * 100 + 50); // Trees at top of map render first (behind player)
         }
       }
     }
 
     // Building labels
     this.add.text(14 * TILE_SIZE, 2.5 * TILE_SIZE, 'CHURCH', {
-      fontFamily: 'monospace', fontSize: '7px', color: '#f8f8f8', fontStyle: 'bold',
+      fontFamily: 'monospace', fontSize: '6px', color: '#f8f8f8', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
     this.add.text(28 * TILE_SIZE, 2.5 * TILE_SIZE, 'LIBRARY', {
-      fontFamily: 'monospace', fontSize: '7px', color: '#f8f8f8', fontStyle: 'bold',
+      fontFamily: 'monospace', fontSize: '6px', color: '#f8f8f8', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(20 * TILE_SIZE, 8 * TILE_SIZE, 'PLAZA', {
-      fontFamily: 'monospace', fontSize: '6px', color: '#888888',
+    this.add.text(20 * TILE_SIZE, 7.5 * TILE_SIZE, 'PLAZA', {
+      fontFamily: 'monospace', fontSize: '5px', color: '#666666',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(19 * TILE_SIZE, 25 * TILE_SIZE, '~ RIVER ~', {
-      fontFamily: 'monospace', fontSize: '6px', color: '#88bbff',
+    this.add.text(19 * TILE_SIZE, 24 * TILE_SIZE, '~ RIVER ~', {
+      fontFamily: 'monospace', fontSize: '5px', color: '#88bbff',
     }).setOrigin(0.5).setDepth(10);
 
-    // Door indicators
-    const doors = [[12, 3], [15, 3], [28, 3]]; // Church door, Church door 2, Library door
-    for (const [dx, dy] of doors) {
-      this.add.text(dx * TILE_SIZE + TILE_SIZE / 2, dy * TILE_SIZE + TILE_SIZE - 4, '▲', {
-        fontFamily: 'monospace', fontSize: '8px', color: '#ffd60a',
-      }).setOrigin(0.5).setDepth(10);
-    }
+    // Sign labels
+    this.add.text(14 * TILE_SIZE, 7.5 * TILE_SIZE, 'Church', {
+      fontFamily: 'monospace', fontSize: '4px', color: '#c4a35a',
+    }).setOrigin(0.5).setDepth(10);
+
+    this.add.text(22 * TILE_SIZE, 7.5 * TILE_SIZE, 'Library', {
+      fontFamily: 'monospace', fontSize: '4px', color: '#c4a35a',
+    }).setOrigin(0.5).setDepth(10);
   }
 
   private buildCollisionMap() {
@@ -268,7 +279,7 @@ export class SanDiegoScene extends Phaser.Scene {
   }
 
   // ────────────────────────────────────────────────────────────────
-  // PLAYER
+  // PLAYER — Integer scale only (1x)
   // ────────────────────────────────────────────────────────────────
 
   private createPlayer() {
@@ -277,8 +288,8 @@ export class SanDiegoScene extends Phaser.Scene {
 
     const spriteKey = this.textures.exists('player_idle_0') ? 'player_idle_0' : 'npc_placeholder';
     this.playerSprite = this.add.image(0, 0, spriteKey);
-    this.playerSprite.setScale(0.55);
-    this.playerSprite.setOrigin(0.5, 0.7);
+    this.playerSprite.setScale(1); // Integer scale — 1x
+    this.playerSprite.setOrigin(0.5, 0.8); // Feet anchor
 
     this.player = this.add.container(
       startTileX * TILE_SIZE + TILE_SIZE / 2,
@@ -322,23 +333,24 @@ export class SanDiegoScene extends Phaser.Scene {
       const newX = this.player.x + moveX;
       const newY = this.player.y + moveY;
 
-      // Check X movement
+      // Check X movement — use center-bottom (feet) for collision
+      const feetOffsetY = 8;
       const tileXNew = Math.floor(newX / TILE_SIZE);
-      const tileYCur = Math.floor(this.player.y / TILE_SIZE);
+      const tileYCur = Math.floor((this.player.y + feetOffsetY) / TILE_SIZE);
       if (!this.isBlocked(tileXNew, tileYCur)) {
         this.player.x = newX;
       }
 
       // Check Y movement
       const tileXCur = Math.floor(this.player.x / TILE_SIZE);
-      const tileYNew = Math.floor(newY / TILE_SIZE);
+      const tileYNew = Math.floor((newY + feetOffsetY) / TILE_SIZE);
       if (!this.isBlocked(tileXCur, tileYNew)) {
         this.player.y = newY;
       }
 
-      // Walk animation
+      // Walk animation — cycle through walk frames
       this.walkTimer += delta;
-      if (this.walkTimer > 100) {
+      if (this.walkTimer > 120) {
         this.walkTimer = 0;
         this.walkFrame = (this.walkFrame + 1) % 10;
         const frameKey = `player_walk_${this.walkFrame}`;
@@ -357,16 +369,29 @@ export class SanDiegoScene extends Phaser.Scene {
       this.isMoving = true;
     } else {
       if (this.isMoving) {
+        // Switch to idle animation
+        this.isMoving = false;
+        this.walkFrame = 0;
+        this.idleFrame = 0;
         const idleKey = 'player_idle_0';
         if (this.textures.exists(idleKey)) {
           this.playerSprite.setTexture(idleKey);
         }
-        this.isMoving = false;
-        this.walkFrame = 0;
+      }
+
+      // Idle animation — gentle breathing cycle through idle frames
+      this.idleTimer += delta;
+      if (this.idleTimer > 200) {
+        this.idleTimer = 0;
+        this.idleFrame = (this.idleFrame + 1) % 11;
+        const idleKey = `player_idle_${this.idleFrame}`;
+        if (this.textures.exists(idleKey)) {
+          this.playerSprite.setTexture(idleKey);
+        }
       }
     }
 
-    // Y-sorting depth
+    // Y-sorting depth — objects further down the screen render on top
     this.player.setDepth(5 + this.player.y / 1000);
   }
 
@@ -376,7 +401,7 @@ export class SanDiegoScene extends Phaser.Scene {
   }
 
   // ────────────────────────────────────────────────────────────────
-  // NPCs
+  // NPCs — Integer scale only (1x)
   // ────────────────────────────────────────────────────────────────
 
   private setupNPCs() {
@@ -420,17 +445,17 @@ export class SanDiegoScene extends Phaser.Scene {
     for (const npcDef of this.npcs) {
       const spriteKey = this.textures.exists(npcDef.spriteKey) ? npcDef.spriteKey : 'npc_placeholder';
       const npcSprite = this.add.image(0, 0, spriteKey);
-      npcSprite.setScale(0.5);
-      npcSprite.setOrigin(0.5, 0.7);
+      npcSprite.setScale(1); // Integer scale — 1x
+      npcSprite.setOrigin(0.5, 0.8); // Feet anchor
 
       if (npcDef.facing === 'left') {
         npcSprite.setFlipX(true);
       }
 
-      // NPC name label
-      const nameLabel = this.add.text(0, -20, npcDef.name, {
+      // NPC name label — tiny, above head
+      const nameLabel = this.add.text(0, -24, npcDef.name, {
         fontFamily: 'monospace',
-        fontSize: '5px',
+        fontSize: '4px',
         color: '#f8f8f8',
         backgroundColor: '#000000aa',
         padding: { x: 2, y: 1 },
@@ -511,6 +536,7 @@ export class SanDiegoScene extends Phaser.Scene {
           {
             speaker: 'Mang Tenyo',
             text: "Find the Estate Ledger, the Tax Records, and a Witness Letter. Bring them back to me.",
+            choices: [{ label: "I'll do it", value: 'accept' }, { label: 'Tell me more', value: 'more' }],
           },
         ];
       } else if (this.questAccepted && !this.allItemsCollected) {
@@ -585,7 +611,7 @@ export class SanDiegoScene extends Phaser.Scene {
     for (const item of QUEST_ITEMS) {
       const textureKey = this.textures.exists(item.textureKey) ? item.textureKey : 'item_placeholder';
       const itemSprite = this.add.image(0, -4, textureKey);
-      itemSprite.setScale(0.3);
+      itemSprite.setScale(1); // Integer scale — 1x
       itemSprite.setOrigin(0.5);
 
       // Glow effect
@@ -594,8 +620,8 @@ export class SanDiegoScene extends Phaser.Scene {
       // Pulsing animation
       this.tweens.add({
         targets: [itemSprite, glow],
-        scaleX: itemSprite.scaleX * 1.15,
-        scaleY: itemSprite.scaleY * 1.15,
+        scaleX: 1.15,
+        scaleY: 1.15,
         duration: 500,
         yoyo: true,
         repeat: -1,
@@ -605,7 +631,7 @@ export class SanDiegoScene extends Phaser.Scene {
       // Item label
       const label = this.add.text(0, 8, item.label, {
         fontFamily: 'monospace',
-        fontSize: '5px',
+        fontSize: '4px',
         color: '#ffd60a',
         fontStyle: 'bold',
       }).setOrigin(0.5);
@@ -634,7 +660,7 @@ export class SanDiegoScene extends Phaser.Scene {
       const dist = Math.abs(playerTileX - item.tileX) + Math.abs(playerTileY - item.tileY);
       if (dist <= 1) {
         this.collectItem(item);
-        return; // Only collect one item per frame
+        return;
       }
     }
   }
@@ -649,8 +675,6 @@ export class SanDiegoScene extends Phaser.Scene {
         targets: sprite,
         y: sprite.y - 20,
         alpha: 0,
-        scaleX: 0.5,
-        scaleY: 0.5,
         duration: 400,
         ease: 'Back.easeIn',
         onComplete: () => sprite.destroy(),
@@ -668,7 +692,6 @@ export class SanDiegoScene extends Phaser.Scene {
     // Check if all items collected
     if (this.collectedItems.size >= QUEST_ITEMS.length) {
       this.allItemsCollected = true;
-      // setObjective will be called after dialogue ends
     } else {
       const remaining = QUEST_ITEMS.length - this.collectedItems.size;
       this.setObjective(`Find evidence (${remaining} remaining)`);
@@ -676,35 +699,37 @@ export class SanDiegoScene extends Phaser.Scene {
   }
 
   // ────────────────────────────────────────────────────────────────
-  // CAMERA
+  // CAMERA — Follows player, Pokémon-style lerp
   // ────────────────────────────────────────────────────────────────
 
   private setupCamera() {
     this.cameras.main.setBounds(0, 0, MAP_W * TILE_SIZE, MAP_H * TILE_SIZE);
-    this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    // Round camera position to avoid sub-pixel blur
+    this.cameras.main.roundPixels = true;
   }
 
   // ────────────────────────────────────────────────────────────────
-  // HUD (minimal - just objective)
+  // HUD — Extremely minimal, current objective only
   // ────────────────────────────────────────────────────────────────
 
   private createHUD() {
-    // Small objective bar at top center
-    const bg = this.add.rectangle(GAME_WIDTH / 2, 10, 0, 14, 0x000000, 0.5)
+    // Small objective bar at top center — Pokémon-style
+    this.objectiveBg = this.add.rectangle(GAME_WIDTH / 2, 10, 0, 12, 0x000000, 0.6)
       .setScrollFactor(0)
       .setDepth(100);
 
     this.objectiveText = this.add.text(GAME_WIDTH / 2, 10, '', {
       fontFamily: 'monospace',
-      fontSize: '6px',
+      fontSize: '5px',
       color: '#f8f8f8',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
-    // Store bg ref for resizing
+    // Resize background to fit text
     this.events.on('update', () => {
-      if (this.objectiveText) {
+      if (this.objectiveText && this.objectiveBg) {
         const text = this.objectiveText.text;
-        bg.width = text.length * 4 + 16;
+        this.objectiveBg.width = text.length * 3.5 + 12;
       }
     });
   }
@@ -723,7 +748,7 @@ export class SanDiegoScene extends Phaser.Scene {
   private createInteractBubble() {
     const bubble = this.add.text(0, 0, 'Z', {
       fontFamily: 'monospace',
-      fontSize: '7px',
+      fontSize: '6px',
       color: '#ffd60a',
       backgroundColor: '#000000cc',
       padding: { x: 3, y: 2 },
@@ -748,38 +773,38 @@ export class SanDiegoScene extends Phaser.Scene {
 
   private createDialogueSystem() {
     const boxW = GAME_WIDTH - 8;
-    const boxH = 56;
+    const boxH = 48;
     const boxX = GAME_WIDTH / 2;
     const boxY = GAME_HEIGHT - boxH / 2 - 4;
 
-    // White box with black border
+    // White box with black border — Pokémon style
     const border = this.add.rectangle(boxX, boxY, boxW + 4, boxH + 4, 0x000000)
       .setScrollFactor(0).setDepth(200);
     const bg = this.add.rectangle(boxX, boxY, boxW, boxH, 0xf8f8f8)
       .setScrollFactor(0).setDepth(201);
 
-    // Speaker name
-    this.dialogueSpeaker = this.add.text(boxX - boxW / 2 + 8, boxY - boxH / 2 + 4, '', {
+    // Speaker name tag
+    this.dialogueSpeaker = this.add.text(boxX - boxW / 2 + 6, boxY - boxH / 2 + 4, '', {
       fontFamily: 'monospace',
-      fontSize: '7px',
+      fontSize: '5px',
       color: '#f8f8f8',
       backgroundColor: '#333333',
       padding: { x: 3, y: 1 },
     }).setScrollFactor(0).setDepth(202);
 
     // Dialogue text
-    this.dialogueText = this.add.text(boxX - boxW / 2 + 8, boxY - boxH / 2 + 16, '', {
+    this.dialogueText = this.add.text(boxX - boxW / 2 + 6, boxY - boxH / 2 + 14, '', {
       fontFamily: 'monospace',
-      fontSize: '7px',
+      fontSize: '5px',
       color: '#222222',
-      wordWrap: { width: boxW - 20 },
+      wordWrap: { width: boxW - 16 },
       lineSpacing: 2,
     }).setScrollFactor(0).setDepth(202);
 
-    // Continue prompt
-    this.dialoguePrompt = this.add.text(boxX + boxW / 2 - 12, boxY + boxH / 2 - 10, '▼', {
+    // Continue prompt ▼
+    this.dialoguePrompt = this.add.text(boxX + boxW / 2 - 10, boxY + boxH / 2 - 8, '▼', {
       fontFamily: 'monospace',
-      fontSize: '7px',
+      fontSize: '6px',
       color: '#333333',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(203);
 
@@ -836,7 +861,7 @@ export class SanDiegoScene extends Phaser.Scene {
     }
 
     this.textTimer = this.time.addEvent({
-      delay: 22,
+      delay: 25,
       callback: () => {
         if (this.charIndex < this.fullText.length) {
           this.displayedText += this.fullText[this.charIndex];
@@ -858,10 +883,17 @@ export class SanDiegoScene extends Phaser.Scene {
     const line = this.dialogueLines[this.dialogueIndex];
 
     if (line.choices && line.choices.length > 0) {
-      // Auto-accept for vertical slice
-      this.time.delayedCall(300, () => {
-        this.handleDialogueChoice(line.choices![0].value);
-      });
+      // For vertical slice: auto-accept the quest
+      if (line.choices.length === 1) {
+        this.time.delayedCall(300, () => {
+          this.handleDialogueChoice(line.choices![0].value);
+        });
+      } else {
+        // Multiple choices — auto-accept first for now
+        this.time.delayedCall(300, () => {
+          this.handleDialogueChoice(line.choices![0].value);
+        });
+      }
     } else {
       this.dialoguePrompt?.setVisible(true);
     }
@@ -894,8 +926,8 @@ export class SanDiegoScene extends Phaser.Scene {
 
   private handleDialogueInput() {
     const pressed = Phaser.Input.Keyboard.JustDown(this.interactKey) ||
-      Phaser.Input.Keyboard.JustDown(this.cursors?.space as Phaser.Input.Keyboard.Key) ||
-      Phaser.Input.Keyboard.JustDown(this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER));
+      Phaser.Input.Keyboard.JustDown(this.spaceKey) ||
+      Phaser.Input.Keyboard.JustDown(this.enterKey);
 
     if (!pressed) return;
 
@@ -953,12 +985,12 @@ export class SanDiegoScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(50);
 
-    const introText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20, '', {
+    const introText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 16, '', {
       fontFamily: 'monospace',
-      fontSize: '7px',
+      fontSize: '5px',
       color: '#f8f8f8',
       align: 'center',
-      wordWrap: { width: GAME_WIDTH - 60 },
+      wordWrap: { width: GAME_WIDTH - 40 },
       lineSpacing: 3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(51);
 
@@ -1022,7 +1054,7 @@ export class SanDiegoScene extends Phaser.Scene {
   private showLocationText(text: string) {
     const locText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, text, {
       fontFamily: 'monospace',
-      fontSize: '9px',
+      fontSize: '7px',
       color: '#f8f8f8',
       fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(50).setAlpha(0);
@@ -1047,14 +1079,14 @@ export class SanDiegoScene extends Phaser.Scene {
       this.cameras.main.once('camerafadeoutcomplete', () => {
         this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000)
           .setScrollFactor(0).setDepth(300);
-        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20, 'CHAPTER 1', {
-          fontFamily: 'monospace', fontSize: '16px', color: '#ffd60a', fontStyle: 'bold',
+        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 16, 'CHAPTER 1', {
+          fontFamily: 'monospace', fontSize: '12px', color: '#ffd60a', fontStyle: 'bold',
         }).setOrigin(0.5).setScrollFactor(0).setDepth(301);
-        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 5, 'COMPLETE', {
-          fontFamily: 'monospace', fontSize: '11px', color: '#f8f8f8',
+        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 4, 'COMPLETE', {
+          fontFamily: 'monospace', fontSize: '8px', color: '#f8f8f8',
         }).setOrigin(0.5).setScrollFactor(0).setDepth(301);
-        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30, 'The truth of San Diego will be known.', {
-          fontFamily: 'monospace', fontSize: '6px', color: '#888888',
+        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 22, 'The truth of San Diego will be known.', {
+          fontFamily: 'monospace', fontSize: '5px', color: '#888888',
         }).setOrigin(0.5).setScrollFactor(0).setDepth(301);
       });
     });

@@ -14,6 +14,21 @@ export default function PhaserGame() {
     const game = new Phaser.Game(createGameConfig(gameParentRef.current));
     gameRef.current = game;
 
+    // Disable image smoothing on the canvas context for pixel-perfect rendering
+    game.events.on('ready', () => {
+      const canvas = game.canvas;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.imageSmoothingEnabled = false;
+        // @ts-expect-error - vendor prefix
+        ctx.webkitImageSmoothingEnabled = false;
+        // @ts-expect-error - vendor prefix
+        ctx.mozImageSmoothingEnabled = false;
+        // @ts-expect-error - vendor prefix
+        ctx.msImageSmoothingEnabled = false;
+      }
+    });
+
     return () => {
       game.destroy(true);
       gameRef.current = null;
@@ -24,6 +39,7 @@ export default function PhaserGame() {
     <div
       ref={gameParentRef}
       className="w-full h-full"
+      style={{ imageRendering: 'pixelated' }}
     />
   );
 }
