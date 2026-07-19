@@ -4,29 +4,28 @@ import { TitleScene } from './scenes/TitleScene';
 import { SanDiegoScene } from './scenes/SanDiegoScene';
 
 // ─── Internal game resolution ─────────────────────────────────────
-// Pokémon FireRed shows ~15×10 tiles. Our sprites are ~48px on 32px tiles.
-// At 480×360: player is 48/480 ≈ 10% of screen width — Pokémon feel.
-// At 640×480: player is 48/640 ≈ 7.5% — more zoomed out.
-// 480×360 gives the closest feel to Pokémon FireRed.
-export const GAME_WIDTH = 480;
-export const GAME_HEIGHT = 360;
+// Pokémon FireRed GBA: 240×160, shows ~7.5×5 tiles at 32px
+// We use 240×160 with zoom 2 = 480×320 display for Pokémon feel
+// Player sprite ~48px on 240px width = 20% at 1x, 10% at 2x zoom
+export const GAME_WIDTH = 240;
+export const GAME_HEIGHT = 160;
 
 // Tile size in world pixels
-export const TILE_SIZE = 32;
+export const TILE_SIZE = 16;
+
+// Camera zoom — Pokémon-style close-up
+export const CAMERA_ZOOM = 2;
 
 /**
  * Calculate the largest integer zoom that fits the given viewport.
- * Ensures pixel-perfect rendering — every game pixel = exactly N screen pixels.
  */
 export function calculateIntegerZoom(viewW: number, viewH: number): number {
   const zoomX = Math.floor(viewW / GAME_WIDTH);
   const zoomY = Math.floor(viewH / GAME_HEIGHT);
-  const zoom = Math.max(1, Math.min(zoomX, zoomY));
-  return zoom;
+  return Math.max(1, Math.min(zoomX, zoomY));
 }
 
 export function createGameConfig(parent: HTMLElement): Phaser.Types.Core.GameConfig {
-  // Calculate integer zoom from the parent container size
   const zoom = calculateIntegerZoom(parent.clientWidth || 960, parent.clientHeight || 720);
 
   return {
@@ -41,9 +40,9 @@ export function createGameConfig(parent: HTMLElement): Phaser.Types.Core.GameCon
     roundPixels: true,     // Snap all positions to integer pixels
     // ─── Integer zoom — no fractional scaling ──────────────────
     scale: {
-      mode: Phaser.Scale.NONE,     // We control the size manually
+      mode: Phaser.Scale.NONE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-      zoom,                         // Integer zoom factor (1, 2, 3, etc.)
+      zoom,
     },
     physics: {
       default: 'arcade',
