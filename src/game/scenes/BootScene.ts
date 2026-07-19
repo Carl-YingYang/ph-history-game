@@ -1,63 +1,14 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from '../config';
-
-// ─── ANIMATION DEFINITIONS ───────────────────────────────────────
-// Each character's animation types and frame counts from sprite_map.json
-interface AnimDef {
-  name: string;
-  frameCount: number;
-  frameRate: number;
-  repeat: number;
-}
-
-const CHAR_ANIMS: Record<string, AnimDef[]> = {
-  ibarra: [
-    { name: 'idle', frameCount: 11, frameRate: 8, repeat: -1 },
-    { name: 'walk', frameCount: 11, frameRate: 10, repeat: -1 },
-    { name: 'run', frameCount: 9, frameRate: 12, repeat: -1 },
-    { name: 'jump', frameCount: 11, frameRate: 8, repeat: 0 },
-    { name: 'attack', frameCount: 9, frameRate: 12, repeat: 0 },
-    { name: 'hurt', frameCount: 11, frameRate: 10, repeat: 0 },
-    { name: 'dead', frameCount: 11, frameRate: 8, repeat: 0 },
-    { name: 'climb', frameCount: 11, frameRate: 8, repeat: -1 },
-    { name: 'fall', frameCount: 9, frameRate: 10, repeat: 0 },
-    { name: 'jumpattack', frameCount: 11, frameRate: 12, repeat: 0 },
-  ],
-  'misc-npc': [
-    { name: 'idle', frameCount: 12, frameRate: 6, repeat: -1 },
-    { name: 'walk', frameCount: 11, frameRate: 8, repeat: -1 },
-  ],
-  'spanish-npc': [
-    { name: 'idle', frameCount: 11, frameRate: 6, repeat: -1 },
-    { name: 'walk', frameCount: 12, frameRate: 8, repeat: -1 },
-  ],
-  'villager-npc': [
-    { name: 'idle', frameCount: 10, frameRate: 6, repeat: -1 },
-    { name: 'walk', frameCount: 11, frameRate: 8, repeat: -1 },
-  ],
-  'religious-npc': [
-    { name: 'idle', frameCount: 11, frameRate: 6, repeat: -1 },
-    { name: 'walk', frameCount: 11, frameRate: 8, repeat: -1 },
-  ],
-  'student-npc': [
-    { name: 'idle', frameCount: 7, frameRate: 6, repeat: -1 },
-    { name: 'walk', frameCount: 11, frameRate: 8, repeat: -1 },
-  ],
-};
-
-// Character key used in sprite_map.json → folder name for extracted frames
-const CHAR_KEY_MAP: Record<string, string> = {
-  ibarra: 'ibarra',
-  'misc-npc': 'misc-npc',
-  'spanish-npc': 'spanish-npc',
-  'villager-npc': 'villager-npc',
-  'religious-npc': 'religious-npc',
-  'student-npc': 'student-npc',
-};
+import { ASSET_SHEETS, CHARACTER_SHEETS, ANIM_ORDER, ANIM_DEFAULTS } from '../assetRegistry';
+import { GAME_WIDTH as GW, GAME_HEIGHT as GH } from '../config';
 
 /**
- * BootScene — Load ALL game assets from the existing sprite frames.
- * No placeholder graphics. No generated textures.
+ * BootScene — loads EVERY PNG sprite sheet as a Phaser texture atlas and
+ * registers EVERY character animation (idle, walk, run, jump, attack, hurt,
+ * dead, fall, climb, jumpattack) directly from the sliced atlas frames.
+ *
+ * No placeholder graphics. No full-PNG display. Each atlas is sliced per the
+ * frame rectangles emitted by scripts/process_assets.py.
  */
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -65,105 +16,88 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // ── Loading bar ─────────────────────────────────────────────
-    const barW = 160;
-    const barH = 6;
-    const barX = (GAME_WIDTH - barW) / 2;
-    const barY = GAME_HEIGHT / 2;
-
-    const border = this.add.rectangle(GAME_WIDTH / 2, barY, barW + 4, barH + 4, 0x000000);
-    const bar = this.add.rectangle(barX, barY, 0, barH, 0xf8f8f8).setOrigin(0, 0.5);
-
-    const loadText = this.add.text(GAME_WIDTH / 2, barY - 14, 'Loading...', {
-      fontFamily: 'monospace', fontSize: '8px', color: '#888888',
+    // ── Loading bar ──
+    const barW = 240, barH = 8;
+    const barX = (GW - barW) / 2;
+    const barY = GH / 2;
+    const border = this.add.rectangle(GW / 2, barY, barW + 6, barH + 6, 0x000000).setStrokeStyle(1, 0x555566);
+    const bar = this.add.rectangle(barX, barY, 0, barH, 0xf5e9c8).setOrigin(0, 0.5);
+    const loadText = this.add.text(GW / 2, barY - 18, 'Slicing sprite sheets…', {
+      fontFamily: 'monospace', fontSize: '10px', color: '#c8b990',
+    }).setOrigin(0.5);
+    const countText = this.add.text(GW / 2, barY + 18, '', {
+      fontFamily: 'monospace', fontSize: '8px', color: '#776655',
     }).setOrigin(0.5);
 
-    this.load.on('progress', (value: number) => {
-      bar.width = barW * value;
+    let loaded = 0;
+    const total = ASSET_SHEETS.length;
+    this.load.on('progress', (v: number) => { bar.width = barW * v; });
+    this.load.on('filecomplete', () => {
+      loaded++;
+      countText.setText(`${loaded} / ${total} sheets`);
     });
 
-    // ── CHARACTER SPRITE FRAMES ─────────────────────────────────
-    // Load individual extracted frames for each character
-    for (const [charKey, anims] of Object.entries(CHAR_ANIMS)) {
-      for (const anim of anims) {
-        for (let i = 0; i < anim.frameCount; i++) {
-          const assetKey = `${charKey}_${anim.name}_${i}`;
-          const folder = CHAR_KEY_MAP[charKey] || charKey;
-          this.load.image(assetKey, `/assets/chars/${folder}_${anim.name}_${i}.png`);
-        }
-      }
+    // ── Load every PNG as a texture atlas ──
+    // load.atlas(key, textureURL, atlasURL) — standard Phaser texture-atlas load.
+    // The PNG is sliced per the frame rectangles in the JSON (JSON Hash format).
+    for (const sheet of ASSET_SHEETS) {
+      this.load.atlas(sheet.key, sheet.pngUrl, sheet.atlasUrl);
     }
 
-    // ── NATURE TILES ────────────────────────────────────────────
-    // Load nature tile frames (rows 2-11 have individual tiles)
-    // Row 0 and 1 are large composite images — skip those
-    for (let row = 2; row <= 11; row++) {
-      for (let frame = 0; frame <= 10; frame++) {
-        const key = `nature_${row}_${frame}`;
-        this.load.image(key, `/assets/nature/nature_r${row}_f${frame}.png`);
-      }
-    }
-
-    // ── QUEST ITEMS ─────────────────────────────────────────────
-    this.load.image('item_book', '/assets/items/book.png');
-    this.load.image('item_letter', '/assets/items/letter.png');
-    this.load.image('item_scroll', '/assets/items/scroll.png');
-    this.load.image('item_coin', '/assets/items/coin.png');
-    this.load.image('item_gem', '/assets/items/gem.png');
-    this.load.image('item_potion', '/assets/items/potion.png');
-    this.load.image('item_key', '/assets/items/key.png');
-
-    // ── PORTRAITS ───────────────────────────────────────────────
-    this.load.image('portrait_ibarra', '/assets/portraits/ibarra.png');
-    this.load.image('portrait_misc', '/assets/portraits/misc-npc.png');
-    this.load.image('portrait_spanish', '/assets/portraits/spanish-npc.png');
-    this.load.image('portrait_villager', '/assets/portraits/villager-npc.png');
-    this.load.image('portrait_religious', '/assets/portraits/religious-npc.png');
-
-    // ── ERROR HANDLING ──────────────────────────────────────────
-    this.load.on('loaderror', (file: { key: string; url: string }) => {
-      console.warn(`Failed to load: ${file.key} from ${file.url}`);
+    this.load.on('loaderror', (file: { key: string; url: unknown }) => {
+      console.error(`[BootScene] Failed to load asset: ${file.key}`, file.url);
     });
 
     this.load.on('complete', () => {
-      border.destroy();
-      bar.destroy();
-      loadText.destroy();
+      border.destroy(); bar.destroy(); loadText.destroy(); countText.destroy();
     });
   }
 
   create() {
-    // ── CREATE PHASER ANIMATIONS FROM LOADED FRAMES ─────────────
-    this.createCharacterAnimations();
+    // ── Verify every atlas loaded + count frames ──
+    let totalFrames = 0;
+    let totalAnims = 0;
+    for (const sheet of ASSET_SHEETS) {
+      if (!this.textures.exists(sheet.key)) {
+        console.error(`[BootScene] Missing texture: ${sheet.key}`);
+        continue;
+      }
+      const tex = this.textures.get(sheet.key);
+      const frameNames = tex.getFrameNames();
+      totalFrames += frameNames.length;
+    }
+    console.log(`[BootScene] ${ASSET_SHEETS.length} atlases loaded, ${totalFrames} total frames`);
 
-    // Start title scene
-    this.scene.start('TitleScene');
-  }
-
-  private createCharacterAnimations() {
-    for (const [charKey, anims] of Object.entries(CHAR_ANIMS)) {
-      for (const anim of anims) {
-        const frames: string[] = [];
-        for (let i = 0; i < anim.frameCount; i++) {
-          const frameKey = `${charKey}_${anim.name}_${i}`;
-          if (this.textures.exists(frameKey)) {
-            frames.push(frameKey);
-          }
-        }
-
-        if (frames.length > 0) {
-          const animKey = `${charKey}_${anim.name}`;
-          // Check if animation already exists
-          if (!this.anims.exists(animKey)) {
-            this.anims.create({
-              key: animKey,
-              frames: frames.map(f => ({ key: f })),
-              frameRate: anim.frameRate,
-              repeat: anim.repeat,
-            });
-          }
+    // ── Register every character animation ──
+    for (const charKey of CHARACTER_SHEETS) {
+      if (!this.textures.exists(charKey)) continue;
+      const tex = this.textures.get(charKey);
+      for (const animName of ANIM_ORDER) {
+        // collect frame names matching {charKey}_{anim}_{index}
+        const pattern = new RegExp(`^${charKey}_${animName}_(\\d+)$`);
+        const matching = tex.getFrameNames().filter(n => pattern.test(n));
+        if (matching.length === 0) continue;
+        // sort by numeric index
+        matching.sort((a, b) => {
+          const ia = parseInt(a.split('_').pop() as string, 10);
+          const ib = parseInt(b.split('_').pop() as string, 10);
+          return ia - ib;
+        });
+        const animKey = `${charKey}_${animName}`;
+        const cfg = ANIM_DEFAULTS[animName] ?? { frameRate: 10, repeat: -1 };
+        if (!this.anims.exists(animKey)) {
+          this.anims.create({
+            key: animKey,
+            frames: matching.map(f => ({ key: charKey, frame: f })),
+            frameRate: cfg.frameRate,
+            repeat: cfg.repeat,
+          });
+          totalAnims++;
         }
       }
     }
+    console.log(`[BootScene] ${totalAnims} animations registered`);
+
+    this.scene.start('ShowcaseScene');
   }
 }

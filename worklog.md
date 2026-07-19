@@ -81,3 +81,73 @@ Stage Summary:
 - World feels populated with bushes, signs, crates, and flowers
 - HUD shows only current objective
 - Pushed to Carl-YingYang/ph-history-game repo
+# PH-History-Game — Asset Integration Worklog
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Integrate all PNG sprite sheets into the project (asset-only phase, no gameplay)
+
+Work Log:
+- Cloned source repo https://github.com/Carl-YingYang/ph-history-game.git to inspect assets
+- Found 28 sprite sheets at `public/assets/sprites/*.jpg` (all 988x1024, RGB, blue background RGB(63,97,124))
+- Character sheets: rizal, ibara, clara, damaso, simoun, salve, elias, sisa, basilio, tiago,
+  student-npc, villager-npc, religious-npc, spanish-npc, misc-npc, animals-assets
+- Environment sheets: building-assets, nature-assets, interior-assets, furniture-assets,
+  collectible-assets, icons-assets, ui-assets, gamedev-assets
+- Analyzed pixel grid: sheets are NON-UNIFORM (frame widths/heights vary per animation row)
+  -> uniform `load.spritesheet(frameWidth, frameHeight)` would cut sprites in half
+  -> CORRECT approach: texture atlas (`load.atlas`) with per-frame rectangles (Phaser hash JSON)
+- Installed phaser@4.2.1 into the project
+- Plan: convert JPGs -> transparent PNGs in `src/app/assets/`, generate atlas JSON per sheet,
+  build Phaser BootScene that loads every atlas and registers every animation, build a
+  ShowcaseScene to verify characters can idle/walk/run/attack/hurt/dead immediately.
+
+Stage Summary:
+- Asset analysis complete. Ready to write asset-processing pipeline + Phaser integration.
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Build Phaser asset integration layer + verify rendering
+
+Work Log:
+- Installed phaser@4.2.1 into the project
+- Wrote scripts/process_assets.py: converts every JPG sprite sheet -> transparent PNG
+  + Phaser JSON-hash atlas in src/app/assets/. Per-frame tight bounding-box detection
+  (no uniform grid — the AI-generated sheets have varying frame widths/heights).
+  Portrait header row detected by height (>90px) and skipped for animation mapping;
+  kept as a named `{char}_portrait` frame.
+- Generated 24 sheets (16 character + 8 environment), 2554 total frames.
+  Every character has all 10 animations: idle, walk, run, jump, attack, hurt, dead,
+  fall, climb, jumpattack (sisa has 8 — its sheet genuinely has fewer rows).
+- Generated src/game/assetRegistry.ts (URL-based: /assets/<key>.png + .json).
+- Copied assets to public/assets/ for Next.js to serve (committed so game works
+  out-of-the-box after clone).
+- Built src/game/config.ts: pixelArt:true, antialias:false, roundPixels:true,
+  render.pixelArt, Scale.FIT. 480x320 internal resolution.
+- Built src/game/scenes/BootScene.ts: loads every atlas via load.atlas(key,png,json),
+  registers every character animation from atlas frame names. Logs confirmed:
+  "24 atlases loaded, 2554 total frames" + "157 animations registered".
+- Built src/game/scenes/ShowcaseScene.ts: spawns character at centre, plays
+  animations, exposes setCharacter()/playAnim() for React. Checkerboard backdrop,
+  character pedestal, env tile strip, keyboard shortcuts (1-0 anim, <-/-> char).
+- Built src/app/page.tsx: React control panel (16 character buttons + 10 animation
+  buttons) + Phaser canvas. Dynamic-imports Phaser inside useEffect to avoid
+  SSR `window is not defined` error. Pixelated canvas via image-rendering CSS.
+  Sticky footer.
+
+Verification (agent-browser):
+- HTTP 200, no page errors, no console errors
+- Canvas 480x320 WebGL rendering
+- 24 atlas PNG+JSON all fetch 200 OK
+- BootScene logs: 24 atlases, 2554 frames, 157 anims
+- Clicking clara -> Attack: skin-tone pixels (208,181,162) appear = real sprite frame
+- Clicking student-npc -> Dead: renders correctly, 243 unique colors (varied sprites)
+- Environment tile strip renders at bottom
+
+Stage Summary:
+- Asset integration COMPLETE. Every PNG sliced, every animation registered,
+  pixel-perfect, no placeholders, no stretching, no full-PNG display.
+- Characters spawn and animate immediately (idle/walk/run/attack/hurt/dead verified).
+- Ready for git commit + push.
