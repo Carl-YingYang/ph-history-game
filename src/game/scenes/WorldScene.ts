@@ -1,6 +1,35 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config';
 import { CHARACTER_SHEETS, ANIM_DEFAULTS } from '../assetRegistry';
+import { gameState, ITEM_DEFS, ItemId, QuestStage } from '../game-state';
+
+// Collectible relics placed around the world. The player gathers these to
+// advance the quest and hand them to María Clara.
+interface CollectibleDef { id: ItemId; tileX: number; tileY: number; }
+const COLLECTIBLES: CollectibleDef[] = [
+  { id: 'relic_crucifix', tileX: 6,  tileY: 6  },
+  { id: 'relic_letter',   tileX: 54, tileY: 40 },
+  { id: 'relic_ring',     tileX: 50, tileY: 6  },
+  { id: 'relic_book',     tileX: 8,  tileY: 40 },
+  { id: 'relic_potion',   tileX: 30, tileY: 4  },
+  { id: 'relic_coin',     tileX: 30, tileY: 42 },
+];
+
+// Enemy guards (spanish-npc) that patrol near the relics. Combat is simple:
+// player attack (J / left-click) within range triggers enemy hurt -> dead.
+interface EnemyDef { id: string; tileX: number; tileY: number; patrolRange: number; }
+const ENEMIES: EnemyDef[] = [
+  { id: 'guard_1', tileX: 10, tileY: 8,  patrolRange: 24 },
+  { id: 'guard_2', tileX: 52, tileY: 10, patrolRange: 24 },
+  { id: 'guard_3', tileX: 12, tileY: 36, patrolRange: 24 },
+  { id: 'guard_4', tileX: 48, tileY: 38, patrolRange: 24 },
+];
+
+// Quest-aware NPC dialogue. Each NPC has intro lines and quest-stage lines.
+interface NpcDefQuest extends NpcDef {
+  questLines?: Partial<Record<QuestStage, string[]>>;
+  givesItem?: { stage: QuestStage; item: ItemId };
+}
 
 /**
  * WorldScene — explorable RPG layer over the integrated sprite atlases.
@@ -28,7 +57,7 @@ interface NpcDef {
   key: string; tileX: number; tileY: number;
   name: string; color: string; lines: string[];
 }
-const NPCS: NpcDef[] = [
+const NPCS: NpcDefQuest[] = [
   {
     key: 'clara', tileX: 30, tileY: 12, name: 'María Clara', color: '#f4c8d8',
     lines: [
@@ -36,6 +65,21 @@ const NPCS: NpcDef[] = [
       'The years apart felt like a single endless prayer.',
       'Walk with me — San Diego has changed, and not for the better.',
     ],
+    questLines: {
+      gather: [
+        'The friars hid our relics across the town.',
+        'Recover them — the crucifix, the letter, my ring…',
+        'Beware the Guardia Civil. They patrol the roads at night.',
+      ],
+      return: [
+        'You carry the relics! I knew you would not fail us.',
+        'Bring them all to me, and our story may yet end in light.',
+      ],
+      complete: [
+        'It is done. San Diego will remember this day.',
+        'Whatever comes next, we face it together, my Crisóstomo.',
+      ],
+    },
   },
   {
     key: 'elias', tileX: 12, tileY: 30, name: 'Elías', color: '#bfe3c0',
@@ -44,6 +88,7 @@ const NPCS: NpcDef[] = [
       'I am Elías. I owe you a debt I may never repay.',
       'When you are ready to know the truth of your father, find me by the lake.',
     ],
+    givesItem: { stage: 'gather', item: 'relic_letter' },
   },
   {
     key: 'damaso', tileX: 48, tileY: 14, name: 'Fr. Dámaso', color: '#e8b878',
@@ -60,6 +105,7 @@ const NPCS: NpcDef[] = [
       'Clara has missed you terribly — do visit the house.',
       'Business calls me to Manila, but tonight we feast!',
     ],
+    givesItem: { stage: 'gather', item: 'relic_coin' },
   },
   {
     key: 'sisa', tileX: 18, tileY: 8, name: 'Sisa', color: '#c8c0e8',
@@ -68,6 +114,7 @@ const NPCS: NpcDef[] = [
       'They took them into the convent and they will not give them back…',
       'Forgive me — I must keep looking. The bell tolls, it always tolls.',
     ],
+    givesItem: { stage: 'gather', item: 'relic_potion' },
   },
 ];
 
@@ -98,6 +145,19 @@ export class WorldScene extends Phaser.Scene {
   private muted = false;
   private groundLayer!: Phaser.GameObjects.Graphics;
   private objectLayer!: Phaser.GameObjects.Container;
+  private collectibles: Phaser.GameObjects.Sprite[] = [];
+  private collectibleDefs = COLLECTIBLES;
+  private enemies: Phaser.Physics.Arcade.Sprite[] = [];
+  private enemyDefs = ENEMIES;
+  private enemyStates: { id: string; alive: boolean; homeX: number; homeY: number; dir: number; hp: number; }[] = [];
+  private attackKey!: Phaser.Input.Keyboard.Key;
+  private attackHitbox!: Phaser.GameObjects.Arc;
+  private isAttacking = false;
+  private healthBar!: Phaser.GameObjects.Graphics;
+  private xpBar!: Phaser.GameObjects.Graphics;
+  private toastText!: Phaser.GameObjects.Text;
+  private toastTimer?: Phaser.Time.TimerEvent;
+  private invulnUntil = 0;
 
   constructor() {
     super('WorldScene');
@@ -119,7 +179,7 @@ export class WorldScene extends Phaser.Scene {
     this.placeEnvironment();
 
     // ── Player ──
-    this.playerCharKey = (this.registry.get('playerChar') as string) || 'rizal';
+    this.playerCharKey = gameState.get().playerChar || (this.registry.get('playerChar') as string) || 'rizal';
     const px = WORLD_W * TILE / 2;
     const py = WORLD_H * TILE / 2 + 8;
     this.player = this.physics.add.sprite(px, py, this.playerCharKey, `${this.playerCharKey}_idle_0`);
@@ -172,9 +232,29 @@ export class WorldScene extends Phaser.Scene {
       else this.scene.switch('TitleScene');
     });
     this.input.keyboard!.on('keydown-M', () => { this.muted = !this.muted; });
+    this.attackKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.J);
+    this.input.keyboard!.on('keydown-J', () => this.doPlayerAttack());
+    this.input.on('pointerdown', (_p: Phaser.Input.Pointer, targets: Phaser.GameObjects.GameObject[]) => {
+      // left-click also attacks
+      this.doPlayerAttack();
+    });
+
+    // ── Collectibles (real sliced frames from collectible-assets atlas) ──
+    this.spawnCollectibles();
+
+    // ── Enemies (spanish-npc sprites, real atlas) ──
+    this.spawnEnemies();
+
+    // ── Attack hitbox (follows player, used for overlap detection) ──
+    this.attackHitbox = this.add.circle(this.player.x, this.player.y, 20, 0xffe066, 0.0)
+      .setVisible(false) as unknown as Phaser.GameObjects.Arc;
+    this.physics.add.existing(this.attackHitbox);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
 
     // ── HUD (fixed to camera) ──
     this.buildHud();
+    this.buildStatusBar();
+    this.buildToast();
 
     // ── Dialogue box (hidden) ──
     this.buildDialog();
@@ -185,8 +265,11 @@ export class WorldScene extends Phaser.Scene {
     // ── Fade in ──
     this.cameras.main.fadeIn(500, 15, 10, 20);
 
+    // ── Restore quest state from save ──
+    this.applySaveState();
+
     // ── First-time objective ──
-    this.setObjective('Speak with the people of San Diego');
+    this.refreshObjective();
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -324,14 +407,10 @@ export class WorldScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(1001);
 
     // controls hint (bottom)
-    const hint = this.add.text(W / 2, GAME_HEIGHT - 6, 'WASD move · ⇧ run · E talk · Esc menu', {
+    const hint = this.add.text(W / 2, GAME_HEIGHT - 6, 'WASD move · ⇧ run · E talk · J attack · Esc menu', {
       fontFamily: 'monospace', fontSize: '6px', color: '#8a7556',
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(1000);
     hint.setShadow(0, 0, '#000', 1);
-  }
-
-  private setObjective(text: string) {
-    if (this.hudObjective) this.hudObjective.setText(`◆ ${text}`);
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -385,37 +464,6 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
-  private onInteract() {
-    if (this.dialogBox.visible) {
-      // advance dialog
-      if (this.typing) {
-        // skip typing -> show full line
-        this.typing = false;
-        if (this.typeTimer) this.typeTimer.remove();
-        this.dialogText.setText(this.fullLine);
-        this.shownChars = this.fullLine.length;
-        return;
-      }
-      // next line or close
-      if (this.dialogQueue.length > 0) {
-        this.startLine(this.dialogQueue.shift()!);
-      } else {
-        this.closeDialog();
-      }
-      return;
-    }
-    // open dialog with nearest NPC
-    if (this.activeNpc) {
-      this.dialogQueue = [...this.activeNpc.lines];
-      this.dialogName.setText(this.activeNpc.name);
-      this.dialogName.setColor(this.activeNpc.color);
-      this.dialogBox.setVisible(true);
-      this.startLine(this.dialogQueue.shift()!);
-      this.interacted.add(this.activeNpc.key);
-      this.checkAllInteracted();
-    }
-  }
-
   private startLine(line: string) {
     this.fullLine = line;
     this.shownChars = 0;
@@ -433,22 +481,6 @@ export class WorldScene extends Phaser.Scene {
         }
       },
     });
-  }
-
-  private closeDialog() {
-    this.dialogBox.setVisible(false);
-    this.dialogQueue = [];
-    this.typing = false;
-    if (this.typeTimer) this.typeTimer.remove();
-  }
-
-  private checkAllInteracted() {
-    const total = this.npcDefs.length;
-    if (this.interacted.size >= total) {
-      this.setObjective('Return to María Clara');
-    } else {
-      this.setObjective(`Speak with the people (${this.interacted.size}/${total})`);
-    }
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -505,6 +537,387 @@ export class WorldScene extends Phaser.Scene {
     } else {
       this.proximityHint.setVisible(false);
     }
+
+    // ── Enemy patrol + collision ──
+    this.updateEnemies();
+
+    // ── Attack hitbox follows player (in front, based on facing) ──
+    if (this.attackHitbox) {
+      const fx = this.player.flipX ? -1 : 1;
+      this.attackHitbox.setPosition(this.player.x + fx * 8, this.player.y - 4);
+    }
+
+    // ── Pick up collectibles by walking over them ──
+    this.checkCollectiblePickup();
+
+    // ── Enemy touch damage ──
+    this.checkEnemyContact();
+
+    // ── Refresh status bars ──
+    this.drawStatusBar();
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  //  Collectibles
+  // ───────────────────────────────────────────────────────────────
+  private spawnCollectibles() {
+    const tex = this.textures.get('collectible-assets');
+    const frames = tex.getFrameNames();
+    if (frames.length === 0) return;
+    // map each relic to a distinct frame
+    for (let i = 0; i < this.collectibleDefs.length; i++) {
+      const def = this.collectibleDefs[i];
+      if (gameState.hasItem(def.id)) continue; // already collected
+      const frameName = frames[(i * 5) % frames.length];
+      const sx = def.tileX * TILE + TILE / 2;
+      const sy = def.tileY * TILE + TILE / 2;
+      const s = this.add.sprite(sx, sy, 'collectible-assets', frameName);
+      s.setOrigin(0.5, 0.5);
+      s.setScale(1.5);
+      s.setDepth(sy);
+      // gentle float
+      this.tweens.add({
+        targets: s, y: sy - 3, duration: 1200, yoyo: true, repeat: -1, ease: 'sine.inOut',
+      });
+      // glow ring
+      const ring = this.add.graphics();
+      ring.lineStyle(1, 0xc9a04a, 0.5);
+      ring.strokeCircle(sx, sy, 9);
+      this.tweens.add({ targets: ring, alpha: 0.1, duration: 800, yoyo: true, repeat: -1 });
+      this.objectLayer.add(s);
+      this.objectLayer.add(ring);
+      this.collectibles.push(s);
+    }
+  }
+
+  private checkCollectiblePickup() {
+    for (let i = this.collectibles.length - 1; i >= 0; i--) {
+      const s = this.collectibles[i];
+      if (!s.active) continue;
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, s.x, s.y);
+      if (d < 14) {
+        const def = this.collectibleDefs[i];
+        gameState.addItem(def.id);
+        const def_meta = ITEM_DEFS.find(m => m.id === def.id);
+        this.showToast(`+ ${def_meta?.name ?? def.id}`);
+        // pickup burst
+        const burst = this.add.image(s.x, s.y, '__WHITE').setTint(0xc9a04a).setScale(2);
+        this.tweens.add({ targets: burst, scaleX: 4, scaleY: 4, alpha: 0, duration: 400, onComplete: () => burst.destroy() });
+        s.destroy();
+        this.collectibles.splice(i, 1);
+        this.refreshObjective();
+        this.checkQuestProgress();
+      }
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  //  Enemies + combat
+  // ───────────────────────────────────────────────────────────────
+  private spawnEnemies() {
+    for (const def of this.enemyDefs) {
+      if (gameState.get().defeated.includes(def.id)) continue;
+      const x = def.tileX * TILE + TILE / 2;
+      const y = def.tileY * TILE + TILE / 2;
+      const s = this.physics.add.sprite(x, y, 'spanish-npc', 'spanish-npc_idle_0');
+      s.setOrigin(0.5, 0.8);
+      s.setScale(2);
+      s.setSize(10, 8);
+      s.setOffset(s.width / 2 - 5, s.height - 8);
+      s.setCollideWorldBounds(true);
+      if (this.anims.exists('spanish-npc_idle')) s.play('spanish-npc_idle');
+      this.objectLayer.add(s);
+      this.enemies.push(s);
+      this.enemyStates.push({ id: def.id, alive: true, homeX: x, homeY: y, dir: 1, hp: 3 });
+      this.physics.add.collider(this.player, s);
+    }
+  }
+
+  private updateEnemies() {
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
+      const st = this.enemyStates[i];
+      if (!st.alive) continue;
+      // patrol horizontally around home
+      const dist = e.x - st.homeX;
+      if (Math.abs(dist) > 18) st.dir = dist > 0 ? -1 : 1;
+      e.setVelocityX(st.dir * 22);
+      e.setFlipX(st.dir < 0);
+      e.setDepth(e.y);
+      // chase player if within 48px
+      const dp = Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y);
+      if (dp < 48) {
+        const cx = this.player.x - e.x;
+        e.setVelocityX(Math.sign(cx) * 36);
+        e.setFlipX(cx < 0);
+      }
+    }
+  }
+
+  private doPlayerAttack() {
+    if (this.dialogBox.visible || this.isAttacking) return;
+    this.isAttacking = true;
+    this.ensureAnim('attack');
+    const animKey = `${this.playerCharKey}_attack`;
+    if (this.anims.exists(animKey)) {
+      this.player.play(animKey, true);
+      this.player.once('animationcomplete', () => {
+        this.isAttacking = false;
+        this.ensureAnim('idle');
+      });
+    } else {
+      this.time.delayedCall(400, () => { this.isAttacking = false; this.ensureAnim('idle'); });
+    }
+    // check enemies in hitbox
+    const fx = this.player.flipX ? -1 : 1;
+    const hx = this.player.x + fx * 10;
+    const hy = this.player.y - 4;
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
+      const st = this.enemyStates[i];
+      if (!st.alive) continue;
+      const d = Phaser.Math.Distance.Between(hx, hy, e.x, e.y);
+      if (d < 22) {
+        st.hp--;
+        // knockback + hurt anim
+        e.setVelocityX(fx * 120);
+        if (this.anims.exists('spanish-npc_hurt')) e.play('spanish-npc_hurt', true);
+        this.showToast(st.hp > 0 ? 'Hit!' : 'Guardia down!');
+        if (st.hp <= 0) {
+          st.alive = false;
+          gameState.markDefeated(st.id);
+          if (this.anims.exists('spanish-npc_dead')) {
+            e.play('spanish-npc_dead');
+            e.once('animationcomplete', () => {
+              this.tweens.add({ targets: e, alpha: 0, duration: 600, delay: 400, onComplete: () => e.destroy() });
+            });
+          } else {
+            this.tweens.add({ targets: e, alpha: 0, duration: 400, onComplete: () => e.destroy() });
+          }
+          this.refreshObjective();
+        } else {
+          // recover from hurt
+          this.time.delayedCall(250, () => {
+            if (st.alive && this.anims.exists('spanish-npc_idle')) e.play('spanish-npc_idle');
+          });
+        }
+      }
+    }
+  }
+
+  private checkEnemyContact() {
+    if (this.time.now < this.invulnUntil) return;
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
+      const st = this.enemyStates[i];
+      if (!st.alive) continue;
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y);
+      if (d < 12) {
+        const dmg = 8;
+        const h = gameState.damage(dmg);
+        this.invulnUntil = this.time.now + 800;
+        // knockback player
+        const fx = this.player.x < e.x ? -1 : 1;
+        this.player.setVelocityX(fx * 120);
+        // flash red
+        this.player.setTint(0xff4444);
+        this.time.delayedCall(200, () => this.player.clearTint());
+        this.showToast(`-${dmg} HP`);
+        if (h <= 0) {
+          // respawn (revive) — keep the game forgiving
+          this.time.delayedCall(800, () => {
+            gameState.update({ health: gameState.get().maxHealth });
+            this.player.setPosition(WORLD_W * TILE / 2, WORLD_H * TILE / 2 + 8);
+            this.showToast('You fell… but the story must go on.');
+          });
+        }
+        break;
+      }
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  //  Status bars (health + XP) + toast
+  // ───────────────────────────────────────────────────────────────
+  private buildStatusBar() {
+    this.healthBar = this.add.graphics().setScrollFactor(0).setDepth(1001);
+    this.xpBar = this.add.graphics().setScrollFactor(0).setDepth(1001);
+    // labels
+    this.add.text(4, 17, 'HP', { fontFamily: 'monospace', fontSize: '7px', color: '#ff8888', fontStyle: 'bold' })
+      .setScrollFactor(0).setDepth(1001);
+    this.add.text(4, 26, 'XP', { fontFamily: 'monospace', fontSize: '7px', color: '#88ccff', fontStyle: 'bold' })
+      .setScrollFactor(0).setDepth(1001);
+    this.add.text(GAME_WIDTH - 4, 17, 'Lv', { fontFamily: 'monospace', fontSize: '7px', color: '#c9a04a', fontStyle: 'bold' })
+      .setOrigin(1, 0).setScrollFactor(0).setDepth(1001);
+    this.levelLabel = this.add.text(GAME_WIDTH - 4, 26, '1', { fontFamily: 'monospace', fontSize: '8px', color: '#e8d5a8', fontStyle: 'bold' })
+      .setOrigin(1, 0).setScrollFactor(0).setDepth(1001);
+    this.drawStatusBar();
+  }
+
+  private levelLabel!: Phaser.GameObjects.Text;
+
+  private drawStatusBar() {
+    const s = gameState.get();
+    const barX = 20, barW = GAME_WIDTH - 60, hpH = 5, xpH = 3;
+    // HP bar
+    this.healthBar.clear();
+    this.healthBar.fillStyle(0x1a1208, 0.8); this.healthBar.fillRect(barX, 18, barW, hpH);
+    const hpPct = s.health / s.maxHealth;
+    const hpCol = hpPct > 0.5 ? 0x4caa4c : hpPct > 0.25 ? 0xc9a04a : 0xb83a3a;
+    this.healthBar.fillStyle(hpCol, 1); this.healthBar.fillRect(barX, 18, barW * hpPct, hpH);
+    this.healthBar.lineStyle(1, 0x6b4423, 0.6); this.healthBar.strokeRect(barX, 18, barW, hpH);
+    // XP bar
+    this.xpBar.clear();
+    this.xpBar.fillStyle(0x1a1208, 0.8); this.xpBar.fillRect(barX, 27, barW, xpH);
+    const xpForNext = s.level * 100;
+    const xpPct = Math.min(1, s.xp / xpForNext);
+    this.xpBar.fillStyle(0x5a8acc, 1); this.xpBar.fillRect(barX, 27, barW * xpPct, xpH);
+    this.levelLabel.setText(String(s.level));
+  }
+
+  private buildToast() {
+    this.toastText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 60, '', {
+      fontFamily: 'monospace', fontSize: '9px', color: '#e8d5a8', fontStyle: 'bold',
+      backgroundColor: '#1a1208cc', padding: { x: 6, y: 3 },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1100).setAlpha(0);
+  }
+
+  private showToast(msg: string) {
+    this.toastText.setText(msg);
+    this.toastText.setAlpha(1);
+    if (this.toastTimer) this.toastTimer.remove();
+    this.toastTimer = this.time.delayedCall(1400, () => {
+      this.tweens.add({ targets: this.toastText, alpha: 0, duration: 300 });
+    });
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  //  Quest + save integration
+  // ───────────────────────────────────────────────────────────────
+  private applySaveState() {
+    const s = gameState.get();
+    this.interacted = new Set(s.spokenTo);
+    // hide already-collected relics (already filtered in spawnCollectibles)
+    // hide already-defeated enemies (already filtered in spawnEnemies)
+  }
+
+  private refreshObjective() {
+    const s = gameState.get();
+    const totalNpc = this.npcDefs.length;
+    const spoken = s.spokenTo.length;
+    const collected = s.inventory.length;
+    const totalRelics = this.collectibleDefs.length;
+    const defeated = s.defeated.length;
+    const totalEnemies = this.enemyDefs.length;
+
+    let obj: string;
+    if (spoken < totalNpc) {
+      obj = `Speak with the people (${spoken}/${totalNpc})`;
+    } else if (s.questStage === 'intro') {
+      // first NPC spoken to starts the gather stage
+      gameState.setQuestStage('gather');
+      obj = `Gather the relics (${collected}/${totalRelics})`;
+    } else if (collected < totalRelics) {
+      obj = `Gather the relics (${collected}/${totalRelics})`;
+    } else if (s.questStage === 'gather') {
+      gameState.setQuestStage('return');
+      obj = 'Return to María Clara';
+    } else if (s.questStage === 'return') {
+      obj = 'Return to María Clara';
+    } else {
+      obj = `Chapter complete · guards felled ${defeated}/${totalEnemies}`;
+    }
+    this.setObjective(obj);
+  }
+
+  private checkQuestProgress() {
+    const s = gameState.get();
+    const totalRelics = this.collectibleDefs.length;
+    if (s.inventory.length >= totalRelics && s.questStage === 'gather') {
+      gameState.setQuestStage('return');
+      this.refreshObjective();
+      this.showToast('All relics gathered! Return to María Clara.');
+    }
+  }
+
+  private onInteract() {
+    if (this.dialogBox.visible) {
+      // advance dialog
+      if (this.typing) {
+        // skip typing -> show full line
+        this.typing = false;
+        if (this.typeTimer) this.typeTimer.remove();
+        this.dialogText.setText(this.fullLine);
+        this.shownChars = this.fullLine.length;
+        return;
+      }
+      // next line or close
+      if (this.dialogQueue.length > 0) {
+        this.startLine(this.dialogQueue.shift()!);
+      } else {
+        this.closeDialog();
+      }
+      return;
+    }
+    // open dialog with nearest NPC
+    if (this.activeNpc) {
+      const def = this.npcDefs.find(n => n.key === this.activeNpc!.key) as NpcDefQuest | undefined;
+      // pick dialogue based on quest stage
+      const stage = gameState.get().questStage;
+      let lines = def?.lines ?? [];
+      if (def?.questLines && def.questLines[stage] && def.questLines[stage]!.length > 0) {
+        lines = def.questLines[stage]!;
+      }
+      this.dialogQueue = [...lines];
+      this.dialogName.setText(this.activeNpc.name);
+      this.dialogName.setColor(this.activeNpc.color);
+      this.dialogBox.setVisible(true);
+      this.startLine(this.dialogQueue.shift()!);
+      this.interacted.add(this.activeNpc.key);
+      gameState.markSpoken(this.activeNpc.key);
+
+      // NPC gives item (Elías, Tiago, Sisa) during gather stage
+      if (def?.givesItem && def.givesItem.stage === stage && !gameState.hasItem(def.givesItem.item)) {
+        // grant after dialog closes
+        this.once('dialogclosed', () => {
+          gameState.addItem(def.givesItem!.item);
+          const meta = ITEM_DEFS.find(m => m.id === def.givesItem!.item);
+          this.showToast(`Received: ${meta?.name ?? def.givesItem!.item}`);
+          this.refreshObjective();
+          this.checkQuestProgress();
+        });
+      }
+
+      // Clara completes the quest when player returns with all relics
+      if (this.activeNpc.key === 'clara' && stage === 'return') {
+        gameState.setQuestStage('complete');
+        this.once('dialogclosed', () => {
+          this.refreshObjective();
+          this.showToast('Chapter complete — San Diego remembers.');
+        });
+      }
+
+      this.refreshObjective();
+    }
+  }
+
+  private closeDialog() {
+    this.dialogBox.setVisible(false);
+    this.dialogQueue = [];
+    this.typing = false;
+    if (this.typeTimer) this.typeTimer.remove();
+    this.emit('dialogclosed');
+    this.removeAllListeners('dialogclosed');
+  }
+
+  private setObjective(text: string) {
+    if (this.hudObjective) this.hudObjective.setText(`◆ ${text}`);
+  }
+
+  // ── public API for React ──
+  resetGame() {
+    gameState.reset();
+    this.scene.restart();
   }
 
   private currentAnim = '';
@@ -522,6 +935,7 @@ export class WorldScene extends Phaser.Scene {
     if (!CHARACTER_SHEETS.includes(key)) return;
     this.playerCharKey = key;
     this.registry.set('playerChar', key);
+    gameState.setPlayerChar(key);
     const frame = `${key}_idle_0`;
     this.player.setTexture(key, frame);
     this.player.setSize(10, 8);

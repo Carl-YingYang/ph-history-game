@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { CHARACTER_SHEETS, ANIM_ORDER } from '@/game/assetRegistry';
+import { gameState, ITEM_DEFS, ItemId, SaveState } from '@/game/game-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
@@ -10,16 +11,19 @@ import { Separator } from '@/components/ui/separator';
  *
  * Three game modes share one Phaser instance:
  *   • Title    — pixel-art title screen (rotating cast portraits)
- *   • Explore  — walk around San Diego, talk to NPCs (the RPG)
+ *   • Explore  — walk San Diego, gather relics, fight Guardia, talk to NPCs (the RPG)
  *   • Studio   — sprite showcase: pick any character + animation
  *
  * The Phaser game is created once and scenes are switched via React.
+ * Game state (health, xp, inventory, quest stage) is persisted to localStorage
+ * via the gameState store and reflected live in the React HUD.
  */
 
 type SceneHandle = {
   setCharacter: (c: string) => void;
   playAnim: (a: string) => void;
   setPlayerChar: (c: string) => void;
+  resetGame: () => void;
   sys: { isActive: () => boolean };
 };
 type GameHandle = {
@@ -51,6 +55,13 @@ const CHAR_DISPLAY: Record<string, string> = {
   'misc-npc': 'A Townsperson', 'animals-assets': 'Beasts',
 };
 
+const QUEST_LABELS: Record<string, string> = {
+  intro: 'A Stranger Returns',
+  gather: 'The Relics of San Diego',
+  return: 'Return to María Clara',
+  complete: 'Chapter I — Complete',
+};
+
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<GameHandle | null>(null);
@@ -60,6 +71,12 @@ export default function Home() {
   const [playerChar, setPlayerChar] = useState('rizal');
   const [ready, setReady] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [save, setSave] = useState<SaveState>(gameState.get());
+
+  // subscribe to game state
+  useEffect(() => {
+    return gameState.subscribe(s => setSave(s));
+  }, []);
 
   useEffect(() => {
     let destroyed = false;
@@ -122,6 +139,12 @@ export default function Home() {
     getScene('WorldScene')?.setPlayerChar(c);
   }, [getScene]);
 
+  const resetGame = useCallback(() => {
+    if (typeof window !== 'undefined' && window.confirm('Reset all progress? This cannot be undone.')) {
+      getScene('WorldScene')?.resetGame();
+    }
+  }, [getScene]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0710] text-zinc-200 font-mono selection:bg-amber-500/30">
       {/* ── Header ── */}
@@ -182,10 +205,11 @@ export default function Home() {
           <div className="max-w-md w-full bg-[#16101a] border border-[#c9a04a]/40 rounded-lg p-5 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="text-amber-200 text-sm font-bold tracking-wider mb-3">HOW TO PLAY</h2>
             <div className="space-y-2 text-[11px] text-zinc-300 leading-relaxed">
-              <p><span className="text-amber-300 font-bold">Title</span> — press Enter/Space or click to begin. Watch the cast rotate.</p>
-              <p><span className="text-amber-300 font-bold">Explore</span> — walk with <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">WASD</kbd>/<kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">arrows</kbd>, hold <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">Shift</kbd> to run, press <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">E</kbd>/Space near an NPC to talk.</p>
-              <p><span className="text-amber-300 font-bold">Studio</span> — pick any character + animation to inspect the sliced frames.</p>
-              <p className="text-zinc-500 pt-1">Every sprite is a real frame sliced from the original PNG atlases — no placeholders.</p>
+              <p><span className="text-amber-300 font-bold">Title</span> — press Enter/Space or click to begin.</p>
+              <p><span className="text-amber-300 font-bold">Explore</span> — walk with <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">WASD</kbd>/<kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">arrows</kbd>, hold <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">Shift</kbd> to run, <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">E</kbd>/Space to talk, <kbd className="px-1 bg-[#0f0a14] border border-[#2a1d10] rounded text-[9px]">J</kbd>/click to attack.</p>
+              <p className="text-zinc-400">Quest: speak to all 5 townsfolk → gather 6 relics (some are gifted by NPCs, others are found in the world) → return to María Clara. Beware the Guardia Civil — they patrol and will fight back.</p>
+              <p><span className="text-amber-300 font-bold">Studio</span> — inspect any character + animation.</p>
+              <p className="text-zinc-500 pt-1">Progress autosaves to your browser. Every sprite is a real sliced atlas frame.</p>
             </div>
             <button onClick={() => setShowHelp(false)} className="mt-4 w-full py-2 rounded bg-amber-500/20 border border-amber-500 text-amber-200 text-[11px] font-bold hover:bg-amber-500/30 transition-colors">
               Got it
@@ -199,7 +223,6 @@ export default function Home() {
         {/* Canvas */}
         <section className="flex-1 flex items-center justify-center p-3 sm:p-5 min-h-[340px] relative">
           <div className="relative w-full max-w-[820px] aspect-[3/2]">
-            {/* Decorative frame */}
             <div className="absolute -inset-1.5 bg-gradient-to-br from-[#c9a04a]/30 via-transparent to-[#8b2c2c]/20 rounded-md blur-[2px]" />
             <div className="absolute -inset-0.5 border border-[#c9a04a]/40 rounded-md" />
             <div
@@ -215,11 +238,9 @@ export default function Home() {
                 </div>
               </div>
             )}
-            {/* Mode badge */}
             <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[8px] text-amber-200/80 border border-amber-900/40 backdrop-blur-sm tracking-widest uppercase">
               {mode}
             </div>
-            {/* Resolution badge */}
             <div className="absolute bottom-2 right-2 text-[8px] text-zinc-600 pointer-events-none tracking-wider">
               480×320 · pixel-perfect
             </div>
@@ -227,14 +248,16 @@ export default function Home() {
         </section>
 
         {/* Side panel */}
-        <aside className="w-full lg:w-[320px] border-t lg:border-t-0 lg:border-l border-[#2a1d10] bg-[#0f0a14] flex flex-col">
+        <aside className="w-full lg:w-[330px] border-t lg:border-t-0 lg:border-l border-[#2a1d10] bg-[#0f0a14] flex flex-col">
           <ScrollArea className="flex-1 max-h-[50vh] lg:max-h-[calc(100vh-160px)]">
             <div className="p-4 space-y-4">
               {mode === 'title' && <TitlePanel />}
               {mode === 'explore' && (
                 <ExplorePanel
+                  save={save}
                   playerChar={playerChar}
                   onSelectPlayerChar={selectPlayerChar}
+                  onReset={resetGame}
                 />
               )}
               {mode === 'studio' && (
@@ -250,7 +273,7 @@ export default function Home() {
 
           <div className="p-3 border-t border-[#2a1d10] bg-gradient-to-b from-transparent to-[#16101a] text-[9px] text-zinc-600 leading-relaxed">
             {mode === 'explore'
-              ? 'WASD move · Shift run · E talk · Esc title'
+              ? 'WASD move · Shift run · E talk · J attack · Esc menu'
               : mode === 'studio'
               ? '←/→ character · 1–0 animation · Space replay'
               : 'Enter / click to begin · S for studio'}
@@ -316,20 +339,106 @@ function TitlePanel() {
 }
 
 function ExplorePanel({
-  playerChar, onSelectPlayerChar,
+  save, playerChar, onSelectPlayerChar, onReset,
 }: {
-  playerChar: string; onSelectPlayerChar: (c: string) => void;
+  save: SaveState;
+  playerChar: string;
+  onSelectPlayerChar: (c: string) => void;
+  onReset: () => void;
 }) {
   const playable = CHARACTER_SHEETS.filter(c => c !== 'animals-assets');
+  const hpPct = Math.round((save.health / save.maxHealth) * 100);
+  const xpForNext = save.level * 100;
+  const xpPct = Math.min(100, Math.round((save.xp / xpForNext) * 100));
+  const hpCol = hpPct > 50 ? 'bg-emerald-500' : hpPct > 25 ? 'bg-amber-500' : 'bg-rose-500';
+
   return (
     <>
-      <div className="text-center py-1">
-        <div className="text-[11px] text-fuchsia-200 font-bold tracking-[0.2em] mb-1"> SAN DIEGO </div>
-        <div className="text-[9px] text-zinc-500 leading-relaxed">
-          Choose your avatar, then walk the town. Talk to five townsfolk to complete the chapter.
+      {/* ── Hero status ── */}
+      <div className="rounded-md bg-gradient-to-br from-[#1c1528] to-[#16101a] border border-[#2a1d10] p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Hero</div>
+            <div className="text-[12px] text-amber-200 font-bold">{CHAR_DISPLAY[playerChar] ?? playerChar}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Level</div>
+            <div className="text-[16px] text-amber-300 font-black leading-none">{save.level}</div>
+          </div>
+        </div>
+        {/* HP bar */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[8px] text-zinc-500">
+            <span>HP</span>
+            <span>{save.health}/{save.maxHealth}</span>
+          </div>
+          <div className="h-2 rounded-full bg-[#0a0610] overflow-hidden border border-[#2a1d10]">
+            <div className={`h-full ${hpCol} transition-all duration-300`} style={{ width: `${hpPct}%` }} />
+          </div>
+          {/* XP bar */}
+          <div className="flex justify-between text-[8px] text-zinc-500 pt-0.5">
+            <span>XP</span>
+            <span>{save.xp}/{xpForNext}</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-[#0a0610] overflow-hidden border border-[#2a1d10]">
+            <div className="h-full bg-sky-500 transition-all duration-300" style={{ width: `${xpPct}%` }} />
+          </div>
         </div>
       </div>
+
+      {/* ── Quest log ── */}
+      <div>
+        <PanelHeader title="Quest Log" hint="Ch. I" />
+        <div className="rounded-md bg-[#1c1528] border border-[#2a1d10] p-2.5">
+          <div className="text-[10px] text-fuchsia-200 font-bold mb-1">{QUEST_LABELS[save.questStage]}</div>
+          <div className="text-[9px] text-zinc-400 leading-relaxed">
+            {save.questStage === 'intro' && 'Speak with the people of San Diego to begin.'}
+            {save.questStage === 'gather' && 'Gather the six relics hidden across the town. Some are held by friends.'}
+            {save.questStage === 'return' && 'All relics gathered. Return to María Clara to complete the chapter.'}
+            {save.questStage === 'complete' && 'San Diego will remember this day. The story continues…'}
+          </div>
+          <div className="grid grid-cols-3 gap-1.5 mt-2 text-center">
+            <Stat label="Spoken" value={`${save.spokenTo.length}/5`} />
+            <Stat label="Relics" value={`${save.inventory.length}/6`} />
+            <Stat label="Felled" value={`${save.defeated.length}/4`} />
+          </div>
+        </div>
+      </div>
+
       <Separator className="bg-[#2a1d10]" />
+
+      {/* ── Inventory ── */}
+      <div>
+        <PanelHeader title="Relics" hint={`${save.inventory.length}/6`} />
+        <div className="grid grid-cols-3 gap-1.5">
+          {ITEM_DEFS.map(item => {
+            const owned = save.inventory.includes(item.id);
+            return (
+              <div
+                key={item.id}
+                title={owned ? `${item.name} — ${item.desc}` : '??? — not yet found'}
+                className={`aspect-square rounded border flex flex-col items-center justify-center p-1 transition-all ${
+                  owned
+                    ? 'bg-[#1c1528] border-amber-500/50 shadow-sm shadow-amber-900/20'
+                    : 'bg-[#0a0610] border-[#2a1d10] opacity-40'
+                }`}
+              >
+                <div
+                  className="w-4 h-4 rounded-sm mb-0.5"
+                  style={{ background: owned ? item.color : '#2a1d10', boxShadow: owned ? `0 0 6px ${item.color}66` : 'none' }}
+                />
+                <span className={`text-[7px] leading-tight text-center ${owned ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                  {owned ? item.name.split(' ').slice(-1)[0] : '?'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <Separator className="bg-[#2a1d10]" />
+
+      {/* ── Play as ── */}
       <div>
         <PanelHeader title="Play as" hint="hero" />
         <div className="grid grid-cols-2 gap-1.5">
@@ -349,16 +458,19 @@ function ExplorePanel({
           ))}
         </div>
       </div>
+
       <Separator className="bg-[#2a1d10]" />
+
+      {/* ── Controls ── */}
       <div>
         <PanelHeader title="Controls" />
         <div className="space-y-1 text-[10px]">
           {[
             ['Move', 'W A S D / ←↑↓→'],
             ['Run', 'Hold Shift'],
+            ['Attack', 'J / Click'],
             ['Talk', 'E or Space'],
             ['Menu', 'Esc'],
-            ['Mute', 'M'],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between items-center px-2 py-1 rounded bg-[#0f0a14] border border-[#2a1d10]/50">
               <span className="text-zinc-500">{k}</span>
@@ -367,26 +479,26 @@ function ExplorePanel({
           ))}
         </div>
       </div>
+
       <Separator className="bg-[#2a1d10]" />
-      <div>
-        <PanelHeader title="Townsfolk" />
-        <div className="space-y-1">
-          {[
-            ['María Clara', 'clara', '#f4c8d8'],
-            ['Elías', 'elias', '#bfe3c0'],
-            ['Fr. Dámaso', 'damaso', '#e8b878'],
-            ['Cap. Tiago', 'tiago', '#d8c898'],
-            ['Sisa', 'sisa', '#c8c0e8'],
-          ].map(([name, key, color]) => (
-            <div key={key} className="flex items-center gap-2 px-2 py-1.5 rounded bg-[#0f0a14] border border-[#2a1d10]/50">
-              <span className="w-2 h-2 rounded-full" style={{ background: color as string }} />
-              <span className="text-[10px] text-zinc-300">{name}</span>
-              <span className="ml-auto text-[8px] text-zinc-600">find in town</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
+      {/* ── Reset ── */}
+      <button
+        onClick={onReset}
+        className="w-full py-2 rounded text-[10px] text-rose-300/80 hover:text-rose-200 hover:bg-rose-950/30 border border-rose-900/40 transition-colors"
+      >
+        Reset Progress
+      </button>
     </>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded bg-[#0a0610] border border-[#2a1d10]/50 py-1">
+      <div className="text-[8px] text-zinc-600 uppercase tracking-wider">{label}</div>
+      <div className="text-[11px] text-amber-200 font-bold">{value}</div>
+    </div>
   );
 }
 

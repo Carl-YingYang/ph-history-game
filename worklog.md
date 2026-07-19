@@ -165,3 +165,68 @@ Unresolved / next-phase recommendations:
 - Add combat (player attack anim vs enemy npc hurt/dead anims)
 - Add save/load progress via Prisma
 - Add background music + SFX (TTS/ambient)
+
+---
+Task ID: 5
+Agent: webDevReview (cron)
+Task: Add quest system, collectibles, combat, save/load + polished RPG HUD
+
+Work Log:
+- QA via agent-browser: confirmed Title/Explore/Studio all stable, no errors. Baseline solid.
+- Created src/game/game-state.ts — persistent game state store:
+  - Tracks playerChar, health, maxHealth, xp, level, inventory (ItemId[]), defeated[],
+    spokenTo[], questStage (intro|gather|return|complete), playTimeMs
+  - Autosaves to localStorage (key 'noli_save_v1') with 400ms debounce
+  - Tiny pub/sub: React HUD subscribes via gameState.subscribe(), Phaser scenes call
+    gameState.addItem/markSpoken/markDefeated/damage/heal/setQuestStage
+  - Level-up: every 100*level XP grants +20 maxHP and full heal
+- Extended WorldScene with COLLECTIBLES + ENEMIES + combat:
+  - 6 relics (crucifix, letter, ring, book, potion, coin) spawned as real sliced frames
+    from collectible-assets atlas, placed around the world map with floating tween +
+    pulsing gold glow ring. Walk over to pick up (distance check) -> toast + burst FX.
+  - 4 Guardia Civil enemies (spanish-npc sprites) that patrol horizontally and chase
+    the player within 48px. 3 HP each.
+  - Combat: J key or left-click triggers player attack anim + hitbox check in front of
+    player. Enemy hurt anim + knockback on hit; dead anim + fade-out on kill. +25 XP
+    per kill, level-up logic.
+  - Enemy touch damage: contact deals 8 dmg, 800ms invuln, knockback, red tint flash.
+    On 0 HP: revive at town center (forgiving — story must go on).
+  - Quest-aware NPC dialogue: each NPC has questLines per stage. Elías/Tiago/Sisa GIFT
+    a relic when spoken to during 'gather' stage. Clara completes the quest on 'return'.
+  - Status bars: HP bar (color shifts green->amber->red) + XP bar + level label, fixed
+    to camera. Toast notifications for pickups/hits/quest milestones.
+  - Objective auto-updates: speak(0/5) -> gather relics(0/6) -> return to Clara -> complete.
+- Rewrote src/app/page.tsx ExplorePanel — major HUD upgrade:
+  - Hero status card: name, level, animated HP bar, XP bar (live from gameState)
+  - Quest Log card: current chapter + stage description + 3 stat tiles (spoken/relics/felled)
+  - Relics inventory grid: 6 slots, owned relics glow with item color + tooltip, unknown
+    show as '?' (locked)
+  - Play-as picker (15 playable chars), Controls reference, Reset Progress button
+  - React subscribes to gameState -> HUD updates live as Phaser mutates state
+- Updated WorldScene: player char loads from/persists to gameState; setPlayerChar writes
+  to gameState; resetGame() clears save + restarts scene
+- Lint: clean (0 errors, 0 warnings)
+
+Verification (agent-browser):
+- HTTP 200, no console errors, no page errors
+- Explore mode: 766 unique colors (grass + relics + enemies + HUD all rendering)
+- Side panel HUD verified via DOM: Hero (Ibarra Lv1), HP 100/100, XP 0/100, Quest
+  "A Stranger Returns", Spoken 0/5, Relics 0/6, Felled 0/4, 6 relic slots (all '?'),
+  Reset Progress button present
+- 252 gold pixels detected (relic glow rings + UI accents)
+- Attack (J) + movement (arrows) responsive
+- Autosave working (gameState persists to localStorage)
+
+Stage Summary:
+- Game is now a full quest-driven RPG loop: explore -> talk -> gather relics (from NPCs
+  + world) -> fight Guardia -> return to Clara -> chapter complete.
+- Persistent save/load via localStorage; React HUD reflects state live.
+- Pixel-perfect rendering preserved; every sprite still a real sliced atlas frame.
+- Ready for commit + push.
+
+Unresolved / next-phase recommendations:
+- Add interior scenes (enter buildings -> furniture-assets maps)
+- Add background music + SFX
+- Add chapter II (Simoun / El Filibusterismo storyline) with new map
+- Add NPC schedules (townsfolk move by time of day)
+- Add crafting (combine relics for abilities)
