@@ -191,3 +191,34 @@ Stage Summary:
 - Neo-brutalism theme fully applied across all UI components and game scenes
 - 120+ character sprites, 40 portraits, 7 backgrounds, 8 items available
 - Successfully pushed to GitHub repo
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Properly decrypt and extract sprite assets from user's original sprite sheets
+
+Work Log:
+- User pointed out that the previous extraction was wrong - blindly cropping without understanding the actual image layout
+- Uploaded 3 reference files: pasted_image (UI mockup), ibara.jpg (sprite sheet), zKrvXUhk.gif (gameplay animation reference)
+- Used VLM to analyze each: pasted_image is a UI mockup showing neo-brutalism game layout, GIF is a Pokemon-style gameplay reference
+- Performed precise pixel analysis on ibara.jpg using numpy projections:
+  - Background color: RGB(63, 97, 124) - teal blue
+  - Header section: Y=0-260 (portrait + character name)
+  - Label column: X=36-84 (animation state names)
+  - Frame spacing: 80px (center-to-center)
+  - Frame X centers: 174, 254, 334, 414, 494, 574, 654, 734, 814, 894
+  - 10 animation states: IDLE, WALK, RUN, JUMP, FALL, JUMP ATTACK, ATTACK, HURT, DEAD, CLIMB
+  - Row 0 (Y=260-280) is just label text, actual sprites start at Row 1 (Y=312+)
+- Rewrote extraction with correct parameters:
+  - Skip label rows (height < 30px or frame_content < 300 pixels)
+  - Extract portrait from left 40% of header (excluding text banners)
+  - 64x64 frame size with transparent background
+  - Scale up 3x for main character sprites
+- Verified with VLM: sprites show full character head-to-feet, portraits are clean without text
+- Pushed corrected assets to GitHub (1178 files changed)
+
+Stage Summary:
+- Properly decrypted sprite sheet grid layout using projection analysis
+- All 10 character sheets + 5 NPC sheets correctly extracted
+- 1129 character sprites, 40 portraits, 7 backgrounds, 10 items
+- Verified sprite quality with VLM confirmation
