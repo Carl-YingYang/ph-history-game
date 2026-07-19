@@ -1,0 +1,12 @@
+{
+  "speaker": "elias",
+  "name": "Elías",
+  "portrait_anim": "portrait",
+  "lines": [
+    "Keep your voice down, señor. The walls of this town have ears.",
+    "I am Elías. I owe you a debt I may never repay.",
+    "When you are ready to know the truth of your father, find me by the lake.",
+    "…Take this letter. It was your father's. Guard it with your life."
+  ],
+  "on_finish": ["grant_item:relic_letter"]
+}

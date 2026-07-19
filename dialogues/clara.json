@@ -1,0 +1,31 @@
+{
+  "speaker": "clara",
+  "name": "María Clara",
+  "portrait_anim": "portrait",
+  "advance_quest_stage": "gather",
+  "lines": [
+    "Crisóstomo… you have returned at last.",
+    "The years apart felt like a single endless prayer.",
+    "Walk with me — San Diego has changed, and not for the better."
+  ],
+  "quest_lines": {
+    "intro": [
+      "Crisóstomo… you have returned at last.",
+      "The years apart felt like a single endless prayer.",
+      "Walk with me — San Diego has changed, and not for the better."
+    ],
+    "gather": [
+      "The friars hid our relics across the town.",
+      "Recover them — the crucifix, the letter, my ring…",
+      "Beware the Guardia Civil. They patrol the roads at night."
+    ],
+    "return": [
+      "You carry the relics! I knew you would not fail us.",
+      "Bring them all to me, and our story may yet end in light."
+    ],
+    "complete": [
+      "It is done. San Diego will remember this day.",
+      "Whatever comes next, we face it together, my Crisóstomo."
+    ]
+  }
+}

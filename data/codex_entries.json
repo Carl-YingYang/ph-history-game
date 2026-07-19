@@ -1,0 +1,21 @@
+[
+  { "id": "char_clara",    "title": "María Clara",   "category": "Characters", "text": "Betrothed of Crisóstomo Ibarra. Daughter of Cap. Tiago, raised in the convent. Her ring is one of the six relics." },
+  { "id": "char_elias",    "title": "Elías",          "category": "Characters", "text": "A mysterious boatman who saved Ibarra's life. He carries the letter revealing the truth of Ibarra's father." },
+  { "id": "char_damaso",   "title": "Fr. Dámaso",     "category": "Characters", "text": "A cruel Franciscan friar and the true father of María Clara. Antagonist of Noli Me Tangere." },
+  { "id": "char_tiago",    "title": "Cap. Tiago",     "category": "Characters", "text": "A wealthy kapitan of San Diego and Clara's supposed father. He gives a doubloon to aid Ibarra's quest." },
+  { "id": "char_sisa",     "title": "Sisa",           "category": "Characters", "text": "A mother driven mad by the loss of her sons Basilio and Crispín. She brews a herbal remedy relic." },
+  { "id": "char_ibarra",   "title": "Crisóstomo Ibarra","category": "Characters","text": "The protagonist of Noli Me Tangere. Returns from Europe to reform his country, only to uncover tragedy." },
+
+  { "id": "item_relic_crucifix", "title": "Wooden Crucifix", "category": "Relics", "text": "A simple cross worn smooth by prayer. Hidden near the chapel." },
+  { "id": "item_relic_letter",   "title": "Father's Letter",  "category": "Relics", "text": "Sealed and stained — the truth of your lineage. Carried by Elías." },
+  { "id": "item_relic_ring",     "title": "Clara's Ring",     "category": "Relics", "text": "A band of promise, given in the convent garden." },
+  { "id": "item_relic_book",     "title": "Forbidden Tome",   "category": "Relics", "text": "Banned by the friars — its pages whisper of reform." },
+  { "id": "item_relic_potion",   "title": "Herbal Remedy",    "category": "Relics", "text": "Sisa's brew — restores vitality in dark hours." },
+  { "id": "item_relic_coin",     "title": "Doubloon",         "category": "Relics", "text": "Cap. Tiago's gold — heavy with compromise." },
+
+  { "id": "place_san_diego",  "title": "San Diego",      "category": "Places", "text": "The lakeside town where Noli Me Tangere unfolds. Home to the plaza, the convent, and the lake." },
+  { "id": "place_convent",    "title": "The Convent",    "category": "Places", "text": "Where María Clara was raised, and where Sisa's sons were taken." },
+  { "id": "place_lake",       "title": "The Lake",       "category": "Places", "text": "Elías's domain. Many secrets lie beneath its waters." },
+
+  { "id": "quest_complete",   "title": "Relics Restored","category": "Story", "text": "The six relics have been returned to María Clara. San Diego will remember this day." }
+]

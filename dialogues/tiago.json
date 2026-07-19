@@ -1,0 +1,12 @@
+{
+  "speaker": "tiago",
+  "name": "Cap. Tiago",
+  "portrait_anim": "portrait",
+  "lines": [
+    "Ah, my dear Crisóstomo! Welcome home!",
+    "Clara has missed you terribly — do visit the house.",
+    "Business calls me to Manila, but tonight we feast!",
+    "Here — a doubloon for your trouble. The friars need not know."
+  ],
+  "on_finish": ["grant_item:relic_coin"]
+}

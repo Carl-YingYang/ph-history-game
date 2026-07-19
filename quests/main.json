@@ -1,0 +1,30 @@
+{
+  "id": "main",
+  "title": "Relics of San Diego",
+  "description": "María Clara asks Crisóstomo to recover the six relics the friars scattered across the town. Each relic holds a fragment of the truth behind Noli Me Tangere.",
+  "initial_stage": "intro",
+  "final_stage": "complete",
+  "stages": {
+    "intro": {
+      "objective": "Speak with María Clara in the plaza.",
+      "next": "gather"
+    },
+    "gather": {
+      "objective": "Recover the 6 hidden relics across San Diego.",
+      "require_items": [
+        "relic_crucifix", "relic_letter", "relic_ring",
+        "relic_book", "relic_potion", "relic_coin"
+      ],
+      "next": "return"
+    },
+    "return": {
+      "objective": "Return the relics to María Clara.",
+      "require_spoken": ["clara"],
+      "next": "complete"
+    },
+    "complete": {
+      "objective": "The quest is complete. Explore San Diego.",
+      "on_enter": ["grant_xp:100", "unlock_codex:quest_complete"]
+    }
+  }
+}

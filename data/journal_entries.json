@@ -1,0 +1,9 @@
+[
+  { "id": "item_relic_crucifix", "title": "The Crucifix",      "text": "I found a wooden crucifix near the chapel. It feels heavier than it should." },
+  { "id": "item_relic_letter",   "title": "A Letter from Elías","text": "Elías pressed a sealed letter into my hand. He says it was my father's. I have not yet found the courage to read it." },
+  { "id": "item_relic_ring",     "title": "Clara's Ring",       "text": "María Clara's ring — I remember the day I gave it to her in the convent garden. The friars hid it away." },
+  { "id": "item_relic_book",     "title": "The Forbidden Tome", "text": "A banned book. Its pages speak of reform — of a country that could be free. I understand now why they fear it." },
+  { "id": "item_relic_potion",   "title": "Sisa's Remedy",      "text": "Sisa, poor Sisa, gave me a bottle of her brew. She begged me to find her sons. I promised I would try." },
+  { "id": "item_relic_coin",     "title": "Tiago's Doubloon",   "text": "Cap. Tiago slipped me a gold doubloon with a wink. 'The friars need not know,' he said." },
+  { "id": "quest_complete",      "title": "The Relics Return",  "text": "I laid the six relics before María Clara. The quest is done — but I fear the true trial has only just begun." }
+]

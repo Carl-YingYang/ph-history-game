@@ -1,0 +1,12 @@
+{
+  "speaker": "sisa",
+  "name": "Sisa",
+  "portrait_anim": "portrait",
+  "lines": [
+    "My boys… have you seen my boys? Basilio? Crispín?",
+    "They took them into the convent and they will not give them back…",
+    "Forgive me — I must keep looking. The bell tolls, it always tolls.",
+    "…Take this remedy. It restores vitality in dark hours. Please — find my sons."
+  ],
+  "on_finish": ["grant_item:relic_potion"]
+}
