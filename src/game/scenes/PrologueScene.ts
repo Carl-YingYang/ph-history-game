@@ -27,14 +27,14 @@ export class PrologueScene extends Phaser.Scene {
 
     // ── Ibarra portrait in corner ────────────────────────────────
     if (this.textures.exists('portrait-ibarra')) {
-      const portrait = this.add.image(740, 80, 'portrait-ibarra').setDisplaySize(64, 64).setDepth(5);
+      const portrait = this.add.image(740, 80, 'portrait-ibarra').setDisplaySize(48, 48).setDepth(5);
       this.add.rectangle(740, 80, 68, 68, 0x000000, 0).setDepth(4).setStrokeStyle(3, 0x000000);
     }
 
     // ── Book on shelf ────────────────────────────────────────────
     const bookKey = this.textures.exists('item-book') ? 'item-book' : 'item-fallback';
     const book = this.add.image(400, 320, bookKey).setInteractive({ useHandCursor: true });
-    book.setScale(this.textures.exists('item-book') ? 3 : 2);
+    book.setScale(this.textures.exists('item-book') ? 0.5 : 2);
     book.setDepth(3);
 
     // Add a pulsing glow effect around the book
@@ -79,7 +79,7 @@ export class PrologueScene extends Phaser.Scene {
     this.tweens.add({
       targets: letter,
       alpha: 1,
-      scale: 3,
+      scale: 0.5,
       duration: 600,
       ease: 'Back.easeOut',
       onComplete: () => {

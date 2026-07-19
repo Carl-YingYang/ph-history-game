@@ -122,7 +122,7 @@ export class SanDiegoTownScene extends Phaser.Scene {
     const playerKey = this.textures.exists('char-ibarra') ? 'char-ibarra' : 'player-fallback';
     this.player = this.physics.add.sprite(400, 450, playerKey);
     if (this.textures.exists('char-ibarra')) {
-      this.player.setScale(2);
+      this.player.setScale(0.25);
     }
     this.player.setCollideWorldBounds(true);
 
@@ -180,7 +180,7 @@ export class SanDiegoTownScene extends Phaser.Scene {
     const npcKey = this.textures.exists('char-mang-tenyo') ? 'char-mang-tenyo' : 'npc-fallback';
     this.ch1Npc = this.physics.add.sprite(400, 250, npcKey);
     if (this.textures.exists('char-mang-tenyo')) {
-      this.ch1Npc.setScale(2);
+      this.ch1Npc.setScale(0.25);
     }
     this.ch1Npc.setImmovable(true);
 
@@ -225,7 +225,7 @@ export class SanDiegoTownScene extends Phaser.Scene {
     const guevaraKey = this.textures.exists('char-civil-guard') ? 'char-civil-guard' : 'npc-fallback';
     this.guevaraNpc = this.physics.add.sprite(150, 120, guevaraKey);
     if (this.textures.exists('char-civil-guard')) {
-      this.guevaraNpc.setScale(2);
+      this.guevaraNpc.setScale(0.25);
     }
     this.guevaraNpc.setImmovable(true);
 
@@ -278,7 +278,7 @@ export class SanDiegoTownScene extends Phaser.Scene {
       const sprite = this.add.sprite(def.x, def.y, textureKey).setInteractive({ useHandCursor: true });
       sprite.setDepth(5);
       if (this.textures.exists(def.texture)) {
-        sprite.setScale(2);
+        sprite.setScale(0.5);
       }
 
       // Pulsing glow on clues
@@ -324,9 +324,7 @@ export class SanDiegoTownScene extends Phaser.Scene {
     const idx = CLUE_DEFS.findIndex((c) => c.key === def.key);
     if (idx >= 0 && this.clueObjects[idx]) {
       this.clueObjects[idx].setTint(0x00ff00);
-      // Stop pulsing and scale down slightly
       this.tweens.killTweensOf(this.clueObjects[idx]);
-      this.clueObjects[idx].setScale(this.clueObjects[idx].scaleX * 0.85);
     }
 
     this.hintText?.setText(`Clues found: ${this.foundClues.size} / ${CLUE_DEFS.length}`);

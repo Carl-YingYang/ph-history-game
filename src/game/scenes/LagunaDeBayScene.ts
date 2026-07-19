@@ -70,7 +70,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     const tasyo = this.physics.add.sprite(440, 160, tasyoKey);
     tasyo.setImmovable(true);
     if (this.textures.exists('char-friar')) {
-      tasyo.setScale(2);
+      tasyo.setScale(0.25);
     }
 
     this.createLabel(440, 125, 'Pilosopo Tasyo', 0xFF9100, 12);
@@ -91,7 +91,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
       const guest = this.physics.add.sprite(pos.x, pos.y, spriteKey);
       guest.setImmovable(true);
       if (this.textures.exists(pos.key)) {
-        guest.setScale(1.8);
+        guest.setScale(0.2);
       }
       this.add
         .text(pos.x, pos.y - 25, pos.label, {
@@ -108,7 +108,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     const crocKey = this.textures.exists('char-crocodile') ? 'char-crocodile' : 'npc-fallback';
     this.crocodile = this.add.sprite(400, 650, crocKey).setAlpha(0);
     if (this.textures.exists('char-crocodile')) {
-      this.crocodile.setScale(2.5);
+      this.crocodile.setScale(0.3);
     }
 
     this.miniGamePrompt = this.add
@@ -127,7 +127,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     this.flowerSprite = this.physics.add.sprite(120, 450, flowerKey);
     this.flowerSprite.setImmovable(true);
     if (this.textures.exists('item-medal')) {
-      this.flowerSprite.setScale(1.5);
+      this.flowerSprite.setScale(0.4);
     }
 
     // Flower label
@@ -145,7 +145,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     const playerKey = this.textures.exists('char-ibarra') ? 'char-ibarra' : 'player-fallback';
     this.player = this.physics.add.sprite(400, 500, playerKey);
     if (this.textures.exists('char-ibarra')) {
-      this.player.setScale(2);
+      this.player.setScale(0.25);
     }
     this.player.setCollideWorldBounds(true);
 
@@ -249,7 +249,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
       const knot = this.physics.add.sprite(kd.x, kd.y, knotKey);
       knot.setImmovable(true);
       if (this.textures.exists('item-scroll')) {
-        knot.setScale(2);
+        knot.setScale(0.5);
       }
       this.knots.push(knot);
       this.knotOriginalPositions.push({ x: kd.x, y: kd.y });
