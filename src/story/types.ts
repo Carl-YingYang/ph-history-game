@@ -217,7 +217,8 @@ export type AppScreen =
   | 'chapter-summary'
   | 'quiz'
   | 'certificate'
-  | 'settings';
+  | 'settings'
+  | 'gallery';
 
 // ====== CHARACTER METADATA ======
 export interface CharacterMeta {

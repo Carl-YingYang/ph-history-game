@@ -32,6 +32,8 @@ function ScreenRouter() {
           {screen === 'chapter-summary' && <ChapterSummaryLazy />}
           {screen === 'quiz' && <QuizLazy />}
           {screen === 'certificate' && <CertificateLazy />}
+          {screen === 'settings' && <SettingsLazy />}
+          {screen === 'gallery' && <GalleryLazy />}
         </motion.div>
       </AnimatePresence>
     </main>
@@ -47,6 +49,8 @@ const ScenePlayerLazy = dynamic(() => import('@/components/ui/ScenePlayer').then
 const ChapterSummaryLazy = dynamic(() => import('@/components/ui/ChapterSummary').then(m => ({ default: m.ChapterSummary })), { ssr: false });
 const QuizLazy = dynamic(() => import('@/components/ui/Quiz').then(m => ({ default: m.Quiz })), { ssr: false });
 const CertificateLazy = dynamic(() => import('@/components/ui/Certificate').then(m => ({ default: m.Certificate })), { ssr: false });
+const SettingsLazy = dynamic(() => import('@/components/ui/SettingsPanel').then(m => ({ default: m.SettingsPanel })), { ssr: false });
+const GalleryLazy = dynamic(() => import('@/components/ui/CharacterGallery').then(m => ({ default: m.CharacterGallery })), { ssr: false });
 
 export default function Home() {
   return (

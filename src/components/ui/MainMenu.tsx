@@ -8,7 +8,7 @@ import { hasSave } from '@/lib/save';
 import { ALL_CHAPTERS } from '@/data/chapters';
 
 export function MainMenu() {
-  const { startNewGame, continueGame, goToChapterSelect, save, resetProgress, finishStory } = useStory();
+  const { startNewGame, continueGame, goToChapterSelect, goToGallery, goToSettings, save, resetProgress, finishStory } = useStory();
   const { playMusic, playSfx } = useAudio();
   const [showNameInput, setShowNameInput] = useState(false);
   const [name, setName] = useState('');
@@ -136,6 +136,22 @@ export function MainMenu() {
               label="Chapter Select"
               sublabel={`${ALL_CHAPTERS.length} chapters available`}
               onClick={handleChapters}
+            />
+            <MenuButton
+              label="Characters"
+              sublabel="Meet the souls of Noli Me Tangere"
+              onClick={() => {
+                playSfx('ui-click');
+                goToGallery();
+              }}
+            />
+            <MenuButton
+              label="Settings"
+              sublabel="Text speed, audio, shortcuts"
+              onClick={() => {
+                playSfx('ui-click');
+                goToSettings();
+              }}
             />
             {save.completionPercentage > 0 && (
               <MenuButton

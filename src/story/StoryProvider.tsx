@@ -28,6 +28,7 @@ interface StoryContextValue {
   activeChapter: Chapter | null;
   activeSceneIndex: number;
   activeDialogueIndex: number;
+  setActiveDialogueIndex: (idx: number) => void;
   // UI flags
   showHistory: boolean;
   showSettings: boolean;
@@ -61,6 +62,9 @@ interface StoryContextValue {
   toggleMute: () => void;
   toggleAutoMode: () => void;
   dismissNote: () => void;
+  // Navigate
+  goToGallery: () => void;
+  goToSettings: () => void;
   // Reset everything
   resetProgress: () => void;
   // Skip to end (for testing / certificate)
@@ -325,6 +329,9 @@ export function StoryProvider({ children }: { children: React.ReactNode }) {
   const toggleAutoMode = useCallback(() => setAutoMode((v) => !v), []);
   const dismissNote = useCallback(() => setShowNote(false), []);
 
+  const goToGallery = useCallback(() => setScreen('gallery'), []);
+  const goToSettings = useCallback(() => setScreen('settings'), []);
+
   const resetProgress = useCallback(() => {
     clearSave();
     setSave(EMPTY_SAVE);
@@ -373,6 +380,7 @@ export function StoryProvider({ children }: { children: React.ReactNode }) {
     activeChapter,
     activeSceneIndex,
     activeDialogueIndex,
+    setActiveDialogueIndex,
     showHistory,
     showSettings,
     showNote,
@@ -395,6 +403,8 @@ export function StoryProvider({ children }: { children: React.ReactNode }) {
     toggleMute,
     toggleAutoMode,
     dismissNote,
+    goToGallery,
+    goToSettings,
     resetProgress,
     finishStory,
   };

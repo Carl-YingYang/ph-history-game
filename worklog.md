@@ -369,3 +369,49 @@ NEXT (for webDevReview cron):
 - Add "arrange events" and "match characters" quiz types
 - Add QR code to certificate
 - Polish: more character expression variations, more background variety
+
+---
+Task ID: webDevReview-1
+Agent: webDevReview cron (round 1)
+Task: QA testing + bug fixes + new features (Settings + Character Gallery)
+
+Work Log:
+- Read worklog.md — understood project is a cinematic VN with 3 chapters, complete flow
+- Full QA testing with agent-browser: main menu → name input → intro → scene 1-4 →
+  choices → chapter summary → quiz → chapter 2 → quiz → chapter 3 → certificate
+- ALL screens verified working with no runtime errors
+- VLM verified: certificate screen is "elegant and professional, all sections visible"
+- VLM verified: mobile responsive (390px) "no overflow, readable"
+
+Bugs found and fixed:
+1. Mini-interaction not triggering in Ch3 Scene 2 — the handleAdvance() was calling
+   completeScene() instead of showing the mini-interaction prompt when dialogue exhausts
+   on a scene with miniInteraction. Fixed by pushing dialogueIndex past end to trigger
+   the !line case which shows the mini-interaction button. Verified fix works.
+2. Added setActiveDialogueIndex to StoryProvider context so ScenePlayer can use it.
+
+New features added:
+1. Settings Panel (SettingsPanel.tsx) — full settings screen with:
+   - Text speed control (slow/normal/fast) — stores in localStorage
+   - Volume slider (0-100%) — stores in localStorage
+   - Auto-advance toggle with animated switch
+   - Mute toggle with animated switch
+   - Keyboard shortcuts reference table
+2. Character Gallery (CharacterGallery.tsx) — new screen with:
+   - Grid of 6 character cards with portrait images
+   - Expandable detail view with full bio, voice type, expression tags
+   - "Discovered" badge for completed chapters
+   - Smooth animations on card selection
+3. HUD improvements:
+   - Added Settings button (⚙ icon) to scene HUD
+   - Added global keyboard shortcuts (M=mute, A=auto, H=history, Esc=menu)
+4. Main Menu improvements:
+   - Added "Characters" button → Character Gallery
+   - Added "Settings" button → Settings screen
+
+Stage Summary:
+- All QA items passed, no runtime errors
+- Mini-interaction bug fixed (was skipping the schoolhouse inspection in Ch3)
+- Settings panel + Character Gallery + keyboard shortcuts added
+- Lint: 0 errors, 12 warnings (unused eslint-disable directives)
+- Ready for next round: add more chapters, more quiz types, QR code on certificate

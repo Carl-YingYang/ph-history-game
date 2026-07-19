@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useStory } from '@/story/StoryProvider';
 import { useAudio } from '@/components/audio/AudioManager';
@@ -31,7 +31,24 @@ export function SceneHUD({
     toggleAutoMode,
     autoMode,
     save,
+    toggleSettings,
   } = useStory();
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Don't trigger if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key.toLowerCase()) {
+        case 'm': toggleMute(); break;
+        case 'a': toggleAutoMode(); break;
+        case 'h': toggleHistory(); break;
+        case 'escape': returnToMenu(); break;
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [toggleMute, toggleAutoMode, toggleHistory, returnToMenu]);
   const { playSfx, stopMusic, stopAmbient } = useAudio();
 
   const handleMenu = () => {
@@ -123,6 +140,16 @@ export function SceneHUD({
           onClick={() => {
             playSfx('ui-click');
             toggleMute();
+          }}
+        />
+        {/* Settings */}
+        <HudButton
+          label="Settings"
+          icon="⚙"
+          active={false}
+          onClick={() => {
+            playSfx('ui-click');
+            toggleSettings();
           }}
         />
         {/* Menu */}

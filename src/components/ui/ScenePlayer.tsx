@@ -13,6 +13,7 @@ import { HistoricalNoteCard } from '@/components/ui/HistoricalNote';
 import { MiniInteractionPanel } from '@/components/ui/MiniInteraction';
 import { SceneHUD } from '@/components/ui/SceneHUD';
 import { DialogueHistoryPanel } from '@/components/dialogue/DialogueHistory';
+import { SettingsPanel } from '@/components/ui/SettingsPanel';
 
 export function ScenePlayer() {
   const {
@@ -24,6 +25,7 @@ export function ScenePlayer() {
     completeScene,
     isTransitioning,
   } = useStory();
+  const { setActiveDialogueIndex: setDialogueIdx } = useStory();
   const { playMusic, playAmbient, stopMusic, stopAmbient, playSfx } = useAudio();
 
   const [showNote, setShowNote] = useState(false);
@@ -172,8 +174,13 @@ export function ScenePlayer() {
   const handleAdvance = () => {
     const advanced = advance();
     if (!advanced && !hasChoices) {
-      // End of scene, no choices — complete
-      completeScene();
+      if (scene.miniInteraction) {
+        // Push dialogue index past end to trigger mini-interaction UI
+        setDialogueIdx(scene.dialogue.length);
+      } else {
+        // End of scene, no choices and no mini-interaction — complete
+        completeScene();
+      }
     }
   };
 
@@ -303,6 +310,9 @@ function SceneShell({
 
         {/* Dialogue history */}
         <DialogueHistoryPanel />
+
+        {/* Settings overlay */}
+        <SettingsPanel />
       </CameraShake>
 
       {/* Flash effect (outside camera shake so it covers full screen) */}
