@@ -1,86 +1,3 @@
----
-Task ID: 1
-Agent: Main Agent
-Task: Complete rebuild of Project Noor as Pokémon-style RPG
-
-Work Log:
-- Analyzed 28 sprite sheet images (all 988x1024) to determine pixel grid structure
-- Detected background color (63,97,124) and used it for proper transparency extraction
-- Found sprite sheet structure: header area (rows 21-279) with portrait, then 10 animation rows (idle, walk, run, jump, attack, hurt, dead, fall, climb, jumpattack) with ~10 frames each
-- Extracted 1,557 individual sprite frames from 15 character/NPC sheets with proper transparent backgrounds
-- Extracted building, nature, interior, animal, furniture, collectible, and UI assets from asset sheets
-- Rebuilt the entire project as a Pokémon-style 2D RPG:
-  - Removed all dashboard/LMS/web UI components (HUD, Codex, Journal, Quiz)
-  - Created full-screen game canvas with no React overlays
-  - Built Pokémon-style TitleScene with "Press Start" prompt
-  - Created SanDiegoScene with 40x30 tile map (church, library, town hall, forest, river, plaza)
-  - Implemented 4-directional player movement with walk animations
-  - Camera follows player with smooth lerp
-  - 4 NPCs with proximity detection and interaction (Z key)
-  - Pokémon-style dialogue system with typewriter effect (all in Phaser, no React)
-  - Quest system: Talk to Mang Tenyo → Accept quest → Find 3 items → Return → Chapter 1 complete
-  - Minimal HUD showing only current objective
-  - Intro cutscene with typewriter text
-  - Chapter completion with fade out
-
-Stage Summary:
-- Game compiles and runs successfully (GET / 200, 27603 bytes)
-- Clean project structure: 4 scene files + 1 config + 1 component + page
-- ESLint passes with no errors
-- Sprite assets properly extracted with transparent backgrounds
-- Game flow: Title → Intro → Explore → Talk → Quest → Collect → Complete
-
----
-Task ID: 2
-Agent: Main Agent
-Task: Fix all rendering issues — pixel art, camera, scaling, animations, world population
-
-Work Log:
-- Fix 1: Pixel Art Rendering Pipeline
-  - Added `roundPixels: true` to Phaser config
-  - Disabled `imageSmoothingEnabled` on canvas 2D context (all vendor prefixes)
-  - Added `image-rendering: crisp-edges` and `pixelated` CSS rules
-  - Disabled font smoothing on game container
-- Fix 2: Camera Framing
-  - Reduced internal resolution from 480×320 to 320×240 (closer to GBA 240×160)
-  - At 320×240 with 32px tiles: player at 1x scale occupies 21.7% of screen height (vs Pokémon's ~20%)
-  - Enabled `cameras.main.roundPixels = true` for sub-pixel-free camera movement
-- Fix 3: Integer Sprite Scaling
-  - Changed player sprite from `setScale(0.55)` to `setScale(1)` (integer only)
-  - Changed NPC sprites from `setScale(0.5)` to `setScale(1)` (integer only)
-  - Changed quest items from `setScale(0.3)` to `setScale(1)` (integer only)
-  - Adjusted origin from `(0.5, 0.7)` to `(0.5, 0.8)` for feet-based anchoring
-- Fix 4: Broken Idle Sprite Animations
-  - Previously: only showed `player_idle_0` when standing still (static, no animation)
-  - Now: cycles through all 11 idle frames (0-10) at 200ms intervals for breathing effect
-  - Walk animation cycles through 10 frames at 120ms intervals
-  - Added `idleFrame` and `idleTimer` state variables
-  - Fixed key reference: added separate `spaceKey` and `enterKey` vars to avoid recreation each frame
-- Fix 5: World Population
-  - Added 3 new tile types to map data: bush (10), roof_fill (11), sign (12), crate (13)
-  - Created new tile textures in BootScene: tile_bush, tile_sign, tile_crate
-  - Placed bushes along path edges (tiles 5,11,17) for natural boundaries
-  - Placed signs near buildings (Church, Library) for wayfinding
-  - Placed crates in town area for visual interest
-  - Added more flower patches throughout the map
-  - Added sign label text for Church and Library
-  - Added all new tile types to BLOCKED_TILES set for collision
-- Fix 6: HUD Stays Minimal
-  - Only displays current objective text
-  - Tiny font (5px), semi-transparent black background
-  - No dashboards, statistics, XP bars, codex, or journal buttons
-- Adjusted all UI text sizes for 320×240 resolution (title: 18px, subtitle: 8px, prompt: 7px, dialogue: 5px)
-- Pushed to GitHub: https://github.com/Carl-YingYang/ph-history-game.git (force push, commit f243062)
-
-Stage Summary:
-- All 6 rendering fixes implemented and committed
-- Game renders with pixel-perfect nearest-neighbor scaling
-- Internal resolution 320×240 gives Pokémon-like camera framing
-- All sprites at integer scale 1x — no fractional scaling
-- Idle animation properly cycles through all frames
-- World feels populated with bushes, signs, crates, and flowers
-- HUD shows only current objective
-- Pushed to Carl-YingYang/ph-history-game repo
 # PH-History-Game — Asset Integration Worklog
 
 ---
@@ -151,3 +68,100 @@ Stage Summary:
   pixel-perfect, no placeholders, no stretching, no full-PNG display.
 - Characters spawn and animate immediately (idle/walk/run/attack/hurt/dead verified).
 - Ready for git commit + push.
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Commit & push to ph-history-game repo + create scheduled review
+
+Work Log:
+- Worked in fresh clone of ph-history-game (preserves repo history)
+- Copied asset-integration files into clone:
+  - src/app/assets/ (24 PNG + 24 JSON + manifest) — canonical asset location
+  - src/game/assetRegistry.ts, config.ts, scenes/BootScene.ts, scenes/ShowcaseScene.ts
+  - src/app/page.tsx (React control panel + Phaser mount)
+  - public/assets/*.png + *.json (served copy, committed so game works after clone)
+  - scripts/process_assets.py + gen_asset_registry.py
+- Removed old gameplay scenes (TitleScene, SanDiegoScene) — asset-only phase
+- Bumped phaser 3.80.1 -> 4.2.1 in package.json
+- Appended this worklog to the repo's existing worklog.md
+- Committed: "Integrate all PNG sprite sheets" (109 files, commit 1b806c2)
+- Pushed to origin main: c7eaa79..1b806c2 (verified remote matches local)
+- PAT not stored in git config (clean)
+
+Stage Summary:
+- Asset integration COMPLETE and pushed to https://github.com/Carl-YingYang/ph-history-game.git
+- Commit 1b806c2 on main
+- Next: scheduled webDevReview cron job (every 15 min) for ongoing QA
+
+---
+Task ID: 4
+Agent: webDevReview (cron)
+Task: Advance toward playable RPG — TitleScene + WorldScene + mode-switcher UI
+
+Work Log:
+- QA via agent-browser: confirmed asset integration stable (24 atlases, 2554 frames,
+  157 anims, no errors). Asset phase is solid baseline.
+- Built TitleScene (src/game/scenes/TitleScene.ts):
+  - Polished pixel-art title screen "NOLI ME TANGERE · San Diego"
+  - Vertical gradient background (deep night -> warm horizon) drawn programmatically
+  - Rotating cast portraits (real sliced {char}_portrait frames from atlases, cross-fade
+    every 2.6s, 16 characters cycled)
+  - Parchment + gold ornamental borders, corner flourishes, vignette, floating embers
+  - Blinking "Press Enter" prompt; Enter/Space/click starts game; S opens Studio
+  - Fade in/out camera transitions
+- Built WorldScene (src/game/scenes/WorldScene.ts) — the playable RPG layer:
+  - 60x45 tile world (San Diego town), procedurally textured ground (grass/path/water/
+    flower tiles, 16x16 with noise speckles — tile layer, not character stand-ins)
+  - Real building sprites from building-assets atlas placed as town landmarks (3 buildings
+    with physics bodies for collision)
+  - Real nature sprites from nature-assets atlas scattered as trees/bushes (60 placed,
+    with trunk collision bodies)
+  - Player (Ibarra by default) — WASD/arrows movement, Shift to run, walk/run/idle anims,
+    horizontal flip for facing, depth-sorted by y, camera follows with zoom 2
+  - 5 NPCs (clara, elias, damaso, tiago, sisa) at fixed positions with idle anim + bob,
+    physics collision with player
+  - Proximity detection: "Press E" hint appears when near an NPC
+  - Dialogue system: typewriter text box (parchment + gold border), NPC name in themed
+    color, 3 lines per NPC (Noli Me Tangere-themed), E/Space advances, Esc closes
+  - HUD: objective bar (top) showing "Speak with the people (N/5)", controls hint (bottom)
+  - Objective updates: "Speak with the people (N/5)" -> "Return to María Clara" after all 5
+  - Player character selectable from React panel (setPlayerChar API)
+- Updated config.ts: scenes [BootScene, TitleScene, WorldScene, ShowcaseScene]
+- Updated BootScene: now starts TitleScene (was ShowcaseScene)
+- Rewrote src/app/page.tsx — major styling + functionality upgrade:
+  - Three-mode switcher (Title / Explore / Studio) sharing one Phaser instance via
+    scene.switch()
+  - Themed header: Noli Me Tangere branding, gold/red gradient logo, live status badge
+  - Mode-specific side panels:
+    * Title: dramatis personae cast list
+    * Explore: playable character picker, controls reference, townsfolk roster
+    * Studio: existing character + animation pickers (preserved)
+  - Help overlay (?) with full how-to-play instructions
+  - Polished canvas frame: gradient glow, gold border, mode badge, resolution badge
+  - Sticky footer + header, responsive (lg breakpoint for side panel)
+  - Keyboard hints in panel footers per mode
+- Lint: clean (0 errors, 0 warnings)
+
+Verification (agent-browser):
+- HTTP 200, no page errors, no console errors across all 3 modes
+- Title mode: 1107 unique colors (portrait + embers + text rendering), amber title text visible
+- Explore mode: 5165 green grass pixels, 131 skin-tone pixels (player Ibarra rendering),
+  movement verified (arrow keys shift viewport), 525+ unique colors
+- Studio mode: 888 unique colors (checkerboard + sprites), clara + Attack verified
+  (390 skin-tone pixels mid-attack)
+- All 24 atlases still load (157 anims registered) — no regression from asset phase
+
+Stage Summary:
+- Game advanced from asset showcase to playable RPG: title -> explore -> talk to NPCs.
+- Three-mode architecture (Title/Explore/Studio) lets user inspect assets AND play.
+- Pixel-perfect rendering preserved (pixelArt, roundPixels, antialias:false, image-rendering:pixelated).
+- No placeholder character art — every sprite is a real sliced atlas frame.
+- Ready for commit + push.
+
+Unresolved / next-phase recommendations:
+- Add quest items (collectibles from collectible-assets atlas) + inventory
+- Add interior scenes (enter buildings -> furniture-assets interior maps)
+- Add combat (player attack anim vs enemy npc hurt/dead anims)
+- Add save/load progress via Prisma
+- Add background music + SFX (TTS/ambient)

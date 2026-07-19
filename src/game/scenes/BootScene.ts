@@ -98,6 +98,6 @@ export class BootScene extends Phaser.Scene {
     }
     console.log(`[BootScene] ${totalAnims} animations registered`);
 
-    this.scene.start('ShowcaseScene');
+    this.scene.start('TitleScene');
   }
 }

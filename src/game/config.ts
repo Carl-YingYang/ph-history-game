@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
+import { TitleScene } from './scenes/TitleScene';
+import { WorldScene } from './scenes/WorldScene';
 import { ShowcaseScene } from './scenes/ShowcaseScene';
 
 // ─── Pixel-perfect rendering ──────────────────────────────────────
@@ -36,6 +38,6 @@ export function createGameConfig(parent: HTMLElement): Phaser.Types.Core.GameCon
       default: 'arcade',
       arcade: { gravity: { x: 0, y: 0 }, debug: false },
     },
-    scene: [BootScene, ShowcaseScene],
+    scene: [BootScene, TitleScene, WorldScene, ShowcaseScene],
   };
 }
