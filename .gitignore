@@ -50,9 +50,5 @@ test
 prompt
 
 server.log
-tool-results/
-upload/
-download/
-
 # Skills directory
 /skills/
