@@ -167,3 +167,27 @@ Stage Summary:
 - Save-slot sync fires on checkpoints and auto-save interval
 - TypeScript compilation clean
 - Client dev server runs without errors
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fetch and pull GitHub repo assets, integrate into game, apply neo-brutalism theme, push to GitHub
+
+Work Log:
+- Cloned latest from https://github.com/Carl-YingYang/ph-history-game.git
+- Discovered 24 new assets in src/app/assets/ (character sprites, NPC sheets, buildings, nature, interiors, animals, collectibles, UI, icons, furniture, gamedev)
+- Used VLM (z-ai vision) to analyze all 24 assets — identified each as proper sprite sheets with 10 animation states x 10 frames
+- Processed all sprite sheets with Python/PIL: extracted 120 individual character sprites, 40 portraits, 7 backgrounds, 8 items
+- Copied all raw assets to public/assets/sprites/
+- Applied complete neo-brutalism theme: warm cream (#FFF8E7) background, thick black borders (3-4px), hard offset shadows (4-6px 0 #000), vibrant colors (yellow #FFD60A, pink #FF6B9D, green #00C853)
+- Updated all 7 React components with neo-brutalism styling
+- Updated all 4 Phaser scenes with monospace labels, colored backgrounds, hard shadows
+- Updated BootScene with loading bar and proper asset loading from /public/assets/
+- Verified with Agent Browser: all 8 criteria PASS
+- Pushed to GitHub: 184 files changed, 888 insertions, 297 deletions
+
+Stage Summary:
+- All real assets now integrated (no more colored rectangle placeholders)
+- Neo-brutalism theme fully applied across all UI components and game scenes
+- 120+ character sprites, 40 portraits, 7 backgrounds, 8 items available
+- Successfully pushed to GitHub repo

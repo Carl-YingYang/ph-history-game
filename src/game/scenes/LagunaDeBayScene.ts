@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { GameEvents } from '../config';
 
+/**
+ * LagunaDeBayScene — The Picnic, Chapter 3
+ * Features: Tasyo dialogue, crocodile encounter mini-game, Elias rescue
+ */
 export class LagunaDeBayScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -43,66 +47,106 @@ export class LagunaDeBayScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.image(400, 300, 'floor-lake');
+    // ── Background ───────────────────────────────────────────────
+    const bgKey = this.textures.exists('bg-lake') ? 'bg-lake' : null;
+    if (bgKey) {
+      this.add.image(400, 300, bgKey).setDisplaySize(800, 600);
+    } else {
+      this.add.rectangle(400, 300, 800, 600, 0xFFF8E7);
+    }
 
-    this.add
-      .text(400, 28, 'Laguna de Bay \u2014 The Picnic, 1887', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '20px',
-        color: '#f2e8d5',
-      })
-      .setOrigin(0.5);
+    // ── Scene Title ──────────────────────────────────────────────
+    this.createLabel(400, 28, 'Laguna de Bay \u2014 The Picnic, 1887', 0x00C853, 18);
 
-    // Zone 1: Tasyo's Hut
-    this.add.sprite(400, 120, 'hut');
-    const tasyo = this.physics.add.sprite(440, 160, 'npc');
+    // ── Zone 1: Tasyo's Hut ─────────────────────────────────────
+    if (this.textures.exists('bg-bahay-nbato')) {
+      this.add.image(400, 120, 'bg-bahay-nbato').setDisplaySize(120, 80).setAlpha(0.9);
+    } else {
+      this.add.rectangle(400, 120, 100, 70, 0xFFD60A).setStrokeStyle(3, 0x000000);
+    }
+
+    // Tasyo NPC
+    const tasyoKey = this.textures.exists('char-friar') ? 'char-friar' : 'npc-fallback';
+    const tasyo = this.physics.add.sprite(440, 160, tasyoKey);
     tasyo.setImmovable(true);
-    this.add
-      .text(440, 130, 'Pilosopo Tasyo', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '13px',
-        color: '#ffd27a',
-      })
-      .setOrigin(0.5);
+    if (this.textures.exists('char-friar')) {
+      tasyo.setScale(2);
+    }
 
-    // Zone 2: Picnic Grounds
+    this.createLabel(440, 125, 'Pilosopo Tasyo', 0xFF9100, 12);
+
+    if (this.textures.exists('portrait-friar')) {
+      this.add.image(510, 140, 'portrait-friar').setDisplaySize(35, 35).setDepth(5);
+    }
+
+    // ── Zone 2: Picnic Guests ────────────────────────────────────
     const guestPositions = [
-      { x: 200, y: 260 },
-      { x: 320, y: 310 },
-      { x: 500, y: 280 },
-      { x: 680, y: 340 },
+      { x: 200, y: 260, key: 'char-young-farmer', label: 'Farmer' },
+      { x: 320, y: 310, key: 'char-old-farmer', label: 'Elder' },
+      { x: 500, y: 280, key: 'char-civil-guard', label: 'Guard' },
+      { x: 680, y: 340, key: 'char-friar', label: 'Priest' },
     ];
     for (const pos of guestPositions) {
-      const guest = this.physics.add.sprite(pos.x, pos.y, 'npc');
+      const spriteKey = this.textures.exists(pos.key) ? pos.key : 'npc-fallback';
+      const guest = this.physics.add.sprite(pos.x, pos.y, spriteKey);
       guest.setImmovable(true);
+      if (this.textures.exists(pos.key)) {
+        guest.setScale(1.8);
+      }
       this.add
-        .text(pos.x, pos.y - 22, 'Guest', {
-          fontFamily: 'Georgia, serif',
-          fontSize: '11px',
-          color: '#bfae94',
+        .text(pos.x, pos.y - 25, pos.label, {
+          fontFamily: 'monospace',
+          fontSize: '10px',
+          color: '#000000',
+          backgroundColor: '#FFF8E7',
+          padding: { x: 2, y: 1 },
         })
         .setOrigin(0.5);
     }
 
-    this.add.sprite(600, 360, 'boat');
+    // ── Crocodile (hidden until mini-game) ───────────────────────
+    const crocKey = this.textures.exists('char-crocodile') ? 'char-crocodile' : 'npc-fallback';
+    this.crocodile = this.add.sprite(400, 650, crocKey).setAlpha(0);
+    if (this.textures.exists('char-crocodile')) {
+      this.crocodile.setScale(2.5);
+    }
 
-    // Zone 3: Crocodile (hidden)
-    this.crocodile = this.add.sprite(400, 650, 'crocodile').setAlpha(0);
     this.miniGamePrompt = this.add
       .text(400, 560, '', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '15px',
-        color: '#ffd27a',
+        fontFamily: 'monospace',
+        fontSize: '14px',
+        color: '#000000',
+        backgroundColor: '#FF3D00',
+        padding: { x: 6, y: 3 },
       })
       .setOrigin(0.5)
       .setDepth(5);
 
-    // Collectible: Pressed Sampaguita
-    this.flowerSprite = this.physics.add.sprite(120, 450, 'flower');
+    // ── Collectible: Pressed Sampaguita ──────────────────────────
+    const flowerKey = this.textures.exists('item-medal') ? 'item-medal' : 'item-fallback';
+    this.flowerSprite = this.physics.add.sprite(120, 450, flowerKey);
     this.flowerSprite.setImmovable(true);
+    if (this.textures.exists('item-medal')) {
+      this.flowerSprite.setScale(1.5);
+    }
 
-    // Player
-    this.player = this.physics.add.sprite(400, 500, 'player');
+    // Flower label
+    this.add
+      .text(120, 425, 'Sampaguita', {
+        fontFamily: 'monospace',
+        fontSize: '10px',
+        color: '#000000',
+        backgroundColor: '#FF6B9D',
+        padding: { x: 2, y: 1 },
+      })
+      .setOrigin(0.5);
+
+    // ── Player (Ibarra) ──────────────────────────────────────────
+    const playerKey = this.textures.exists('char-ibarra') ? 'char-ibarra' : 'player-fallback';
+    this.player = this.physics.add.sprite(400, 500, playerKey);
+    if (this.textures.exists('char-ibarra')) {
+      this.player.setScale(2);
+    }
     this.player.setCollideWorldBounds(true);
 
     // Overlap detectors
@@ -136,7 +180,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     }
   }
 
-  // Zone 1 — Tasyo Dialogue
+  // ── Zone 1 — Tasyo Dialogue ────────────────────────────────────
   private onTasyoOverlap() {
     if (this.talkedToTasyo) return;
     this.talkedToTasyo = true;
@@ -166,7 +210,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     });
   }
 
-  // Zone 3 — Crocodile Encounter
+  // ── Zone 3 — Crocodile Encounter ────────────────────────────────
   private startCrocodileEncounter() {
     if (this.miniGameStarted) return;
     this.miniGameStarted = true;
@@ -200,18 +244,23 @@ export class LagunaDeBayScene extends Phaser.Scene {
     for (let i = 0; i < knotData.length; i++) {
       const kd = knotData[i];
 
-      const knot = this.physics.add.sprite(kd.x, kd.y, 'net');
+      // Use scroll as net visual
+      const knotKey = this.textures.exists('item-scroll') ? 'item-scroll' : 'item-fallback';
+      const knot = this.physics.add.sprite(kd.x, kd.y, knotKey);
       knot.setImmovable(true);
+      if (this.textures.exists('item-scroll')) {
+        knot.setScale(2);
+      }
       this.knots.push(knot);
       this.knotOriginalPositions.push({ x: kd.x, y: kd.y });
       this.knotOverlapCooldowns.push(false);
 
       const label = this.add
         .text(kd.x, kd.y - 20, kd.label, {
-          fontFamily: 'Georgia, serif',
+          fontFamily: 'monospace',
           fontSize: '16px',
-          color: '#ffffff',
-          backgroundColor: '#6b3a1f',
+          color: '#000000',
+          backgroundColor: '#FFD60A',
           padding: { x: 6, y: 2 },
         })
         .setOrigin(0.5)
@@ -219,10 +268,12 @@ export class LagunaDeBayScene extends Phaser.Scene {
       this.knotLabels.push(label);
 
       const status = this.add
-        .text(kd.x, kd.y + 22, knotFeedback[i], {
-          fontFamily: 'Georgia, serif',
+        .text(kd.x, kd.y + 25, knotFeedback[i], {
+          fontFamily: 'monospace',
           fontSize: '12px',
-          color: '#ffd27a',
+          color: '#000000',
+          backgroundColor: '#00C853',
+          padding: { x: 4, y: 2 },
         })
         .setOrigin(0.5)
         .setAlpha(0)
@@ -352,7 +403,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     });
   }
 
-  // Collectible — Pressed Sampaguita
+  // ── Collectible — Pressed Sampaguita ────────────────────────────
   private onFlowerOverlap() {
     if (this.flowerCollected) return;
     this.flowerCollected = true;
@@ -372,7 +423,7 @@ export class LagunaDeBayScene extends Phaser.Scene {
     });
   }
 
-  // Quiz Completion — Chapter 3 End
+  // ── Quiz Completion — Chapter 3 End ─────────────────────────────
   private ch3QuizDone = false;
 
   private onCh3QuizCompleted() {
@@ -387,5 +438,32 @@ export class LagunaDeBayScene extends Phaser.Scene {
         sceneKey: 'SanDiegoTownScene',
       });
     });
+  }
+
+  /** Create a neo-brutalism styled label */
+  private createLabel(x: number, y: number, text: string, bgColor: number, fontSize: number) {
+    const label = this.add.text(x, y, text, {
+      fontFamily: 'monospace',
+      fontSize: `${fontSize}px`,
+      color: '#000000',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5);
+
+    const bounds = label.getBounds();
+    const padding = 6;
+
+    // Shadow
+    this.add.rectangle(
+      bounds.centerX + 3, bounds.centerY + 3,
+      bounds.width + padding * 2, bounds.height + padding,
+      0x000000
+    ).setDepth(3);
+
+    // Background
+    this.add.rectangle(
+      bounds.centerX, bounds.centerY,
+      bounds.width + padding * 2, bounds.height + padding,
+      bgColor
+    ).setDepth(4).setStrokeStyle(3, 0x000000);
   }
 }

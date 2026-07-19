@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { GameEvents } from '../config';
 
+/**
+ * PrologueScene — University Library, Present Day
+ * Player finds an old copy of Noli Me Tangere with a hidden letter.
+ */
 export class PrologueScene extends Phaser.Scene {
   private step = 0;
   private promptText?: Phaser.GameObjects.Text;
@@ -10,24 +14,51 @@ export class PrologueScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.image(400, 300, 'floor-library');
-    const book = this.add.image(400, 320, 'book').setInteractive({ useHandCursor: true });
+    // ── Background ───────────────────────────────────────────────
+    const bgKey = this.textures.exists('bg-library') ? 'bg-library' : null;
+    if (bgKey) {
+      this.add.image(400, 300, bgKey).setDisplaySize(800, 600);
+    } else {
+      this.add.rectangle(400, 300, 800, 600, 0xFFF8E7);
+    }
 
-    this.add
-      .text(400, 60, 'University Library — Present Day', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '22px',
-        color: '#f2e8d5',
-      })
-      .setOrigin(0.5);
+    // ── Scene Title (neo-brutalism style) ────────────────────────
+    this.createLabel(400, 40, 'University Library — Present Day', 0xFFD60A, 20);
 
+    // ── Ibarra portrait in corner ────────────────────────────────
+    if (this.textures.exists('portrait-ibarra')) {
+      const portrait = this.add.image(740, 80, 'portrait-ibarra').setDisplaySize(64, 64).setDepth(5);
+      this.add.rectangle(740, 80, 68, 68, 0x000000, 0).setDepth(4).setStrokeStyle(3, 0x000000);
+    }
+
+    // ── Book on shelf ────────────────────────────────────────────
+    const bookKey = this.textures.exists('item-book') ? 'item-book' : 'item-fallback';
+    const book = this.add.image(400, 320, bookKey).setInteractive({ useHandCursor: true });
+    book.setScale(this.textures.exists('item-book') ? 3 : 2);
+    book.setDepth(3);
+
+    // Add a pulsing glow effect around the book
+    this.tweens.add({
+      targets: book,
+      scaleX: book.scaleX * 1.1,
+      scaleY: book.scaleY * 1.1,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // ── Prompt Text ──────────────────────────────────────────────
     this.promptText = this.add
-      .text(400, 520, 'Click the book on the shelf to return it.', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '16px',
-        color: '#cfcfcf',
+      .text(400, 540, 'Click the book on the shelf to return it.', {
+        fontFamily: 'monospace',
+        fontSize: '14px',
+        color: '#000000',
+        backgroundColor: '#FFD60A',
+        padding: { x: 8, y: 4 },
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(5);
 
     book.on('pointerdown', () => this.onBookClicked());
   }
@@ -40,14 +71,17 @@ export class PrologueScene extends Phaser.Scene {
       text: 'I found an old letter tucked inside my copy of Noli Me Tangere...',
     });
 
-    const letter = this.add.image(400, 300, 'letter').setAlpha(0).setScale(0.1);
+    const letterKey = this.textures.exists('item-letter') ? 'item-letter' : 'item-fallback';
+    const letter = this.add.image(400, 300, letterKey).setAlpha(0).setScale(0.1).setDepth(5);
+
     this.promptText?.setText('A letter fell out. Click it to read.');
 
     this.tweens.add({
       targets: letter,
       alpha: 1,
-      scale: 1,
+      scale: 3,
       duration: 600,
+      ease: 'Back.easeOut',
       onComplete: () => {
         letter.setInteractive({ useHandCursor: true });
         letter.on('pointerdown', () => this.onLetterClicked());
@@ -66,12 +100,16 @@ export class PrologueScene extends Phaser.Scene {
       line: 'To whoever still remembers —',
     });
 
+    this.game.events.emit(GameEvents.CodexUnlock, { id: 'char.ibarra' });
+
     this.time.delayedCall(1400, () => this.beginTimeFall());
   }
 
   private beginTimeFall() {
     this.step = 3;
-    const flash = this.add.rectangle(400, 300, 800, 600, 0xffffff, 0).setDepth(10);
+
+    // Neo-brutalism flash: bright yellow overlay
+    const flash = this.add.rectangle(400, 300, 800, 600, 0xFFD60A, 0).setDepth(10);
 
     this.tweens.add({
       targets: flash,
@@ -82,5 +120,32 @@ export class PrologueScene extends Phaser.Scene {
         this.scene.start('SanDiegoTownScene', { chapterId: 'ch1' });
       },
     });
+  }
+
+  /** Create a neo-brutalism styled label */
+  private createLabel(x: number, y: number, text: string, bgColor: number, fontSize: number) {
+    // Background pill
+    const label = this.add.text(x, y, text, {
+      fontFamily: 'monospace',
+      fontSize: `${fontSize}px`,
+      color: '#000000',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5);
+
+    const bounds = label.getBounds();
+    const padding = 8;
+
+    const bg = this.add.rectangle(
+      bounds.centerX, bounds.centerY,
+      bounds.width + padding * 2, bounds.height + padding,
+      bgColor
+    ).setDepth(4).setStrokeStyle(3, 0x000000);
+
+    // Hard shadow
+    this.add.rectangle(
+      bounds.centerX + 4, bounds.centerY + 4,
+      bounds.width + padding * 2, bounds.height + padding,
+      0x000000
+    ).setDepth(3);
   }
 }

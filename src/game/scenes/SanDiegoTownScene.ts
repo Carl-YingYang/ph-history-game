@@ -24,7 +24,7 @@ const GUEVARA_DIALOGUE = [
 const CLUE_DEFS: ClueDef[] = [
   {
     key: 'ledger',
-    texture: 'clue-ledger',
+    texture: 'item-book',
     label: 'Estate Ledger',
     description: 'Don Rafael\u2019s estate ledger shows he funded the schoolhouse and paid the parish taxes in full \u2014 no hint of heresy.',
     x: 650,
@@ -32,7 +32,7 @@ const CLUE_DEFS: ClueDef[] = [
   },
   {
     key: 'tax',
-    texture: 'clue-tax',
+    texture: 'item-scroll',
     label: 'Tax Records',
     description: 'Tax records confirm Don Rafael was one of the largest contributors to the town \u2014 contradicting the charge of subversion.',
     x: 180,
@@ -40,7 +40,7 @@ const CLUE_DEFS: ClueDef[] = [
   },
   {
     key: 'witness',
-    texture: 'clue-witness',
+    texture: 'item-letter',
     label: 'Witness Statement',
     description: 'A witness affidavit states that Padre Dámaso publicly denounced Don Rafael from the pulpit before any trial took place.',
     x: 620,
@@ -48,7 +48,7 @@ const CLUE_DEFS: ClueDef[] = [
   },
   {
     key: 'burial',
-    texture: 'clue-burial',
+    texture: 'item-scroll',
     label: 'Burial Order',
     description: 'The burial order, signed by the parish priest, ordered the exhumation and removal of Don Rafael\u2019s remains to the Chinese cemetery.',
     x: 130,
@@ -92,30 +92,38 @@ export class SanDiegoTownScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.image(400, 300, 'floor-town');
+    // ── Background ───────────────────────────────────────────────
+    const bgKey = this.textures.exists('bg-town') ? 'bg-town' : null;
+    if (bgKey) {
+      this.add.image(400, 300, bgKey).setDisplaySize(800, 600);
+    } else {
+      this.add.rectangle(400, 300, 800, 600, 0xFFF8E7);
+    }
 
+    // ── Decorative buildings ─────────────────────────────────────
+    if (this.textures.exists('bg-church')) {
+      this.add.image(700, 150, 'bg-church').setDisplaySize(160, 100).setAlpha(0.9).setDepth(1);
+    }
+    if (this.textures.exists('bg-bahay-nbato')) {
+      this.add.image(150, 180, 'bg-bahay-nbato').setDisplaySize(140, 90).setAlpha(0.9).setDepth(1);
+    }
+
+    // ── Scene Title ──────────────────────────────────────────────
     const titleY = 30;
     if (this.chapterId === 'ch1') {
-      this.add
-        .text(400, titleY, 'San Diego \u2014 Town Plaza, 1887', {
-          fontFamily: 'Georgia, serif',
-          fontSize: '20px',
-          color: '#f2e8d5',
-        })
-        .setOrigin(0.5);
+      this.createLabel(400, titleY, 'San Diego \u2014 Town Plaza, 1887', 0xFFD60A, 18);
       this.setupCh1();
     } else if (this.chapterId === 'ch2') {
-      this.add
-        .text(400, titleY, 'San Diego \u2014 The Lieutenant\u2019s Warning', {
-          fontFamily: 'Georgia, serif',
-          fontSize: '20px',
-          color: '#f2e8d5',
-        })
-        .setOrigin(0.5);
+      this.createLabel(400, titleY, 'San Diego \u2014 The Lieutenant\u2019s Warning', 0x2979FF, 18);
       this.setupCh2();
     }
 
-    this.player = this.physics.add.sprite(400, 450, 'player');
+    // ── Player (Ibarra) ──────────────────────────────────────────
+    const playerKey = this.textures.exists('char-ibarra') ? 'char-ibarra' : 'player-fallback';
+    this.player = this.physics.add.sprite(400, 450, playerKey);
+    if (this.textures.exists('char-ibarra')) {
+      this.player.setScale(2);
+    }
     this.player.setCollideWorldBounds(true);
 
     if (this.chapterId === 'ch1') {
@@ -126,22 +134,30 @@ export class SanDiegoTownScene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
+    // ── Hint Text ────────────────────────────────────────────────
     this.hintText = this.add
       .text(400, 575, '', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '14px',
-        color: '#ffd27a',
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        color: '#000000',
+        backgroundColor: '#FFD60A',
+        padding: { x: 6, y: 3 },
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(5);
 
+    // ── Quest indicator ──────────────────────────────────────────
     const questsHere = getQuestsForChapter(this.chapterId);
     this.add
-      .text(20, 560, `Chapter ${this.chapterId === 'ch1' ? '1' : '2'} quests loaded: ${questsHere.length}`, {
+      .text(20, 560, `Quests: ${questsHere.length}`, {
         fontFamily: 'monospace',
-        fontSize: '12px',
-        color: '#888',
+        fontSize: '11px',
+        color: '#000000',
+        backgroundColor: '#00C853',
+        padding: { x: 4, y: 2 },
       })
-      .setOrigin(0);
+      .setOrigin(0)
+      .setDepth(5);
 
     if (this.chapterId === 'ch1') {
       this.game.events.once('quiz:completed', this.onCh1QuizCompleted, this);
@@ -160,10 +176,21 @@ export class SanDiegoTownScene extends Phaser.Scene {
   }
 
   private setupCh1() {
-    this.ch1Npc = this.physics.add.sprite(400, 250, 'npc');
-    this.add
-      .text(400, 220, 'Mang Tenyo', { fontFamily: 'Georgia, serif', fontSize: '13px', color: '#ffd27a' })
-      .setOrigin(0.5);
+    // ── Mang Tenyo NPC ───────────────────────────────────────────
+    const npcKey = this.textures.exists('char-mang-tenyo') ? 'char-mang-tenyo' : 'npc-fallback';
+    this.ch1Npc = this.physics.add.sprite(400, 250, npcKey);
+    if (this.textures.exists('char-mang-tenyo')) {
+      this.ch1Npc.setScale(2);
+    }
+    this.ch1Npc.setImmovable(true);
+
+    // NPC label
+    this.createLabel(400, 210, 'Mang Tenyo', 0xFF6B9D, 13);
+
+    // Portrait
+    if (this.textures.exists('portrait-mang-tenyo')) {
+      this.add.image(480, 230, 'portrait-mang-tenyo').setDisplaySize(40, 40).setDepth(5);
+    }
   }
 
   private talkToMangTenyo() {
@@ -194,10 +221,19 @@ export class SanDiegoTownScene extends Phaser.Scene {
   }
 
   private setupCh2() {
-    this.guevaraNpc = this.physics.add.sprite(150, 120, 'guevara-npc');
-    this.add
-      .text(150, 90, 'Lt. Guevara', { fontFamily: 'Georgia, serif', fontSize: '13px', color: '#a8d5ba' })
-      .setOrigin(0.5);
+    // ── Lt. Guevara NPC ──────────────────────────────────────────
+    const guevaraKey = this.textures.exists('char-civil-guard') ? 'char-civil-guard' : 'npc-fallback';
+    this.guevaraNpc = this.physics.add.sprite(150, 120, guevaraKey);
+    if (this.textures.exists('char-civil-guard')) {
+      this.guevaraNpc.setScale(2);
+    }
+    this.guevaraNpc.setImmovable(true);
+
+    this.createLabel(150, 80, 'Lt. Guevara', 0x2979FF, 13);
+
+    if (this.textures.exists('portrait-civil-guard')) {
+      this.add.image(230, 100, 'portrait-civil-guard').setDisplaySize(40, 40).setDepth(5);
+    }
   }
 
   private talkToGuevara() {
@@ -238,14 +274,31 @@ export class SanDiegoTownScene extends Phaser.Scene {
     this.hintText?.setText('Investigate the evidence scattered around the plaza. Click on each clue.');
 
     for (const def of CLUE_DEFS) {
-      const sprite = this.add.sprite(def.x, def.y, def.texture).setInteractive({ useHandCursor: true });
+      const textureKey = this.textures.exists(def.texture) ? def.texture : 'item-fallback';
+      const sprite = this.add.sprite(def.x, def.y, textureKey).setInteractive({ useHandCursor: true });
       sprite.setDepth(5);
+      if (this.textures.exists(def.texture)) {
+        sprite.setScale(2);
+      }
+
+      // Pulsing glow on clues
+      this.tweens.add({
+        targets: sprite,
+        scaleX: sprite.scaleX * 1.15,
+        scaleY: sprite.scaleY * 1.15,
+        duration: 600,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
 
       this.add
-        .text(def.x, def.y - 18, def.label, {
-          fontFamily: 'Georgia, serif',
+        .text(def.x, def.y - 25, def.label, {
+          fontFamily: 'monospace',
           fontSize: '11px',
-          color: '#e8d5b0',
+          color: '#000000',
+          backgroundColor: '#FF6B9D',
+          padding: { x: 3, y: 1 },
         })
         .setOrigin(0.5)
         .setDepth(6);
@@ -270,7 +323,10 @@ export class SanDiegoTownScene extends Phaser.Scene {
 
     const idx = CLUE_DEFS.findIndex((c) => c.key === def.key);
     if (idx >= 0 && this.clueObjects[idx]) {
-      this.clueObjects[idx].setTint(0x88ff88);
+      this.clueObjects[idx].setTint(0x00ff00);
+      // Stop pulsing and scale down slightly
+      this.tweens.killTweensOf(this.clueObjects[idx]);
+      this.clueObjects[idx].setScale(this.clueObjects[idx].scaleX * 0.85);
     }
 
     this.hintText?.setText(`Clues found: ${this.foundClues.size} / ${CLUE_DEFS.length}`);
@@ -335,5 +391,30 @@ export class SanDiegoTownScene extends Phaser.Scene {
       });
       this.scene.start('LagunaDeBayScene');
     });
+  }
+
+  /** Create a neo-brutalism styled label */
+  private createLabel(x: number, y: number, text: string, bgColor: number, fontSize: number) {
+    const label = this.add.text(x, y, text, {
+      fontFamily: 'monospace',
+      fontSize: `${fontSize}px`,
+      color: '#000000',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5);
+
+    const bounds = label.getBounds();
+    const padding = 6;
+
+    this.add.rectangle(
+      bounds.centerX + 3, bounds.centerY + 3,
+      bounds.width + padding * 2, bounds.height + padding,
+      0x000000
+    ).setDepth(3);
+
+    this.add.rectangle(
+      bounds.centerX, bounds.centerY,
+      bounds.width + padding * 2, bounds.height + padding,
+      bgColor
+    ).setDepth(4).setStrokeStyle(3, 0x000000);
   }
 }

@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Project Noor — Rizal RPG",
-  description: "A Pokémon-style top-down RPG where you witness the events of José Rizal's Noli Me Tangere and El Filibusterismo as a time-displaced 2026 college student.",
+  description:
+    "A Pokémon-style RPG through José Rizal's Noli Me Tangere and El Filibusterismo",
 };
 
 export default function RootLayout({
@@ -24,9 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0b0b12] text-[#f2e8d5]`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FFF8E7] text-[#1a1a1a]`}
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(26,26,26,0.08) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
       >
         {children}
         <Toaster />

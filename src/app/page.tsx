@@ -155,7 +155,19 @@ export default function Home() {
             : 'Reader';
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-[#0b0b12] py-4 px-3">
+    <div className="min-h-screen flex flex-col items-center bg-[#FFF8E7] py-4 px-3">
+      {/* Title Banner */}
+      <div className="mb-3 text-center">
+        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-widest text-black">
+          <span className="bg-[#FFD60A] px-3 py-1 border-3 border-black rounded-lg shadow-[3px_3px_0_#000] inline-block">
+            Project Noor
+          </span>
+        </h1>
+        <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mt-1">
+          Rizal-Inspired Educational RPG
+        </p>
+      </div>
+
       <HUD
         knowledgeXp={knowledgeXp}
         rank={rank}
@@ -166,15 +178,17 @@ export default function Home() {
       />
 
       <div className="my-3 w-full max-w-[800px]">
-        <PhaserGame
-          onKnowledgeXp={handleKnowledgeXp}
-          onChapterMedal={handleChapterMedal}
-          onCodexUnlock={handleCodexUnlock}
-          onJournalEntry={handleJournalEntry}
-          onDialogueLine={handleDialogueLine}
-          onQuizRequested={handleQuizRequested}
-          onChapterTransition={handleChapterTransition}
-        />
+        <div className="game-canvas-frame">
+          <PhaserGame
+            onKnowledgeXp={handleKnowledgeXp}
+            onChapterMedal={handleChapterMedal}
+            onCodexUnlock={handleCodexUnlock}
+            onJournalEntry={handleJournalEntry}
+            onDialogueLine={handleDialogueLine}
+            onQuizRequested={handleQuizRequested}
+            onChapterTransition={handleChapterTransition}
+          />
+        </div>
       </div>
 
       {dialogue && <DialogueBox speaker={dialogue.speaker} line={dialogue.line} />}
@@ -190,8 +204,10 @@ export default function Home() {
         <JournalPanel entries={journalEntries} onClose={() => setActivePanel('none')} />
       )}
 
-      <footer className="mt-auto pt-6 text-center text-xs text-gray-600">
-        Project Noor — Rizal-Inspired Educational RPG &middot; Unified Next.js Build
+      <footer className="mt-auto pt-6 text-center">
+        <span className="bg-[#FF6B9D] text-black font-black uppercase text-xs tracking-wider px-3 py-1 border-2 border-black rounded-sm shadow-[2px_2px_0_#000] inline-block">
+          Project Noor — Rizal RPG
+        </span>
       </footer>
     </div>
   );

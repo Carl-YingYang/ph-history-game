@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -42,46 +41,48 @@ export default function QuizModal({ questions, onComplete }: QuizModalProps) {
   const isCorrect = selected === q.correctIndex;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <Card className="w-full max-w-[600px] border-2 border-amber-700/60 bg-[#1a1410] shadow-2xl">
-        <CardHeader className="pb-3">
-          <CardTitle className="font-['Georgia',serif] text-lg text-amber-500">
-            Journal Recap — how much do you remember?
-          </CardTitle>
-          <Badge variant="outline" className="w-fit text-amber-400 border-amber-700">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-[600px] neo-brutal-card bg-white">
+        <div className="mb-3">
+          <h2 className="text-xl font-black uppercase tracking-wider text-black">
+            Journal Recap
+          </h2>
+          <p className="text-sm font-bold text-gray-600">How much do you remember?</p>
+          <Badge className="mt-2 bg-[#FFD60A] text-black border-2 border-black rounded-sm font-black uppercase text-xs">
             Question {index + 1} of {questions.length}
           </Badge>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-[#f2e8d5] font-medium">{q.question}</p>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-base font-bold text-black">{q.question}</p>
 
           <div className="space-y-2">
             {q.options.map((opt, i) => {
-              let buttonClass = 'w-full text-left justify-start border border-amber-900/40 bg-[#241c14] text-[#f2e8d5] hover:border-amber-600 hover:bg-amber-900/20';
+              let buttonClass = 'w-full text-left justify-start border-2 border-black bg-[#FFF8E7] text-black font-bold hover:bg-[#FFD60A] shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none';
 
               if (selected !== null) {
                 if (i === q.correctIndex) {
-                  buttonClass = 'w-full text-left justify-start border border-green-600 bg-green-900/30 text-green-200';
+                  buttonClass = 'w-full text-left justify-start border-3 border-black bg-[#00C853] text-black font-bold shadow-[2px_2px_0_#000]';
                 } else if (i === selected && i !== q.correctIndex) {
-                  buttonClass = 'w-full text-left justify-start border border-red-600 bg-red-900/30 text-red-200';
+                  buttonClass = 'w-full text-left justify-start border-3 border-black bg-[#FF3D00] text-white font-bold shadow-[2px_2px_0_#000]';
                 } else {
-                  buttonClass = 'w-full text-left justify-start border border-amber-900/20 bg-[#241c14]/50 text-gray-500';
+                  buttonClass = 'w-full text-left justify-start border-2 border-gray-300 bg-gray-100 text-gray-400 font-bold';
                 }
               }
 
               return (
                 <button
                   key={i}
-                  className={buttonClass + ' rounded-md px-3 py-2 text-sm transition-colors'}
+                  className={buttonClass + ' rounded-lg px-4 py-2.5 text-sm transition-all'}
                   onClick={() => choose(i)}
                   disabled={selected !== null}
                 >
                   <span className="flex items-center gap-2">
                     {selected !== null && i === q.correctIndex && (
-                      <CheckCircle2 className="h-4 w-4 text-green-400 shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-black shrink-0" />
                     )}
                     {selected !== null && i === selected && i !== q.correctIndex && (
-                      <XCircle className="h-4 w-4 text-red-400 shrink-0" />
+                      <XCircle className="h-5 w-5 text-white shrink-0" />
                     )}
                     {opt}
                   </span>
@@ -91,25 +92,25 @@ export default function QuizModal({ questions, onComplete }: QuizModalProps) {
           </div>
 
           {selected !== null && (
-            <div className="mt-3 rounded-md bg-amber-900/20 border border-amber-800/40 p-3">
-              <p className="text-sm text-amber-300 font-semibold mb-1">
-                {isCorrect ? 'Correct!' : 'Not quite.'} Here&apos;s what actually happened:
+            <div className="mt-3 rounded-lg bg-[#FFD60A] border-2 border-black p-3 shadow-[2px_2px_0_#000]">
+              <p className="text-sm font-black text-black mb-1">
+                {isCorrect ? 'CORRECT!' : 'Not quite.'} Here&apos;s what actually happened:
               </p>
-              <p className="text-xs text-gray-300 leading-relaxed">{q.footnote}</p>
+              <p className="text-xs font-semibold text-black/80 leading-relaxed">{q.footnote}</p>
             </div>
           )}
 
           {selected !== null && (
             <Button
               onClick={next}
-              className="w-full mt-2 bg-amber-800 hover:bg-amber-700 text-amber-100"
+              className="w-full mt-2 bg-[#00C853] text-black font-black uppercase rounded-lg border-2 border-black shadow-[3px_3px_0_#000] hover:bg-[#00b848] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-sm"
             >
               {isLast ? 'Finish' : 'Next'}
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
